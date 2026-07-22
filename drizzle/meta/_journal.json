@@ -15,6 +15,13 @@
       "when": 1784450080923,
       "tag": "0001_wise_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784710204821,
+      "tag": "0002_slimy_lyja",
+      "breakpoints": true
     }
   ]
 }
