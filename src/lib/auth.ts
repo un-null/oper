@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 
 import { db, schema } from "@/db";
@@ -26,10 +27,13 @@ export const auth = betterAuth({
         await getResend().emails.send({
           from: AUTH_EMAIL_FROM,
           to: email,
-          subject: "Oper のログインコード",
-          text: `ログインコード: ${otp}\n\nこのコードは10分間有効です。心当たりがない場合は無視してください。`,
+          subject: "Your Oper login code",
+          text: `Your login code is: ${otp}\n\nThis code is valid for 10 minutes. If you didn't request it, you can ignore this email.`,
         });
       },
     }),
+    // Must be last: bridges better-auth's Set-Cookie into Next.js server
+    // action / route handler responses.
+    nextCookies(),
   ],
 });
