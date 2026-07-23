@@ -1,0 +1,909 @@
+{
+  "id": "23b1ad61-c70d-4e12-bc06-fb37706c0269",
+  "prevId": "3a93645f-de82-47dc-8407-5b36de3fba3d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "auth.users": {
+      "name": "users",
+      "schema": "auth",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.conversations": {
+      "name": "conversations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "giver_id": {
+          "name": "giver_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiver_id": {
+          "name": "receiver_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "conversations_giver_id_idx": {
+          "name": "conversations_giver_id_idx",
+          "columns": [
+            {
+              "expression": "giver_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "conversations_receiver_id_idx": {
+          "name": "conversations_receiver_id_idx",
+          "columns": [
+            {
+              "expression": "receiver_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "conversations_item_id_items_id_fk": {
+          "name": "conversations_item_id_items_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "items",
+          "columnsFrom": [
+            "item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "conversations_giver_id_profiles_id_fk": {
+          "name": "conversations_giver_id_profiles_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "giver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "conversations_receiver_id_profiles_id_fk": {
+          "name": "conversations_receiver_id_profiles_id_fk",
+          "tableFrom": "conversations",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "receiver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "conversations_item_receiver_unique": {
+          "name": "conversations_item_receiver_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "item_id",
+            "receiver_id"
+          ]
+        }
+      },
+      "policies": {
+        "conversations_select_participant": {
+          "name": "conversations_select_participant",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"conversations\".\"giver_id\" = (select auth.uid()) OR \"conversations\".\"receiver_id\" = (select auth.uid())"
+        },
+        "conversations_insert_as_receiver": {
+          "name": "conversations_insert_as_receiver",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"conversations\".\"receiver_id\" = (select auth.uid())"
+        },
+        "conversations_update_participant": {
+          "name": "conversations_update_participant",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"conversations\".\"giver_id\" = (select auth.uid()) OR \"conversations\".\"receiver_id\" = (select auth.uid())",
+          "withCheck": "\"conversations\".\"giver_id\" = (select auth.uid()) OR \"conversations\".\"receiver_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.items": {
+      "name": "items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "giver_id": {
+          "name": "giver_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "category": {
+          "name": "category",
+          "type": "item_category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "condition": {
+          "name": "condition",
+          "type": "item_condition",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "item_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "location": {
+          "name": "location",
+          "type": "geometry(point)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pickup_spot": {
+          "name": "pickup_spot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "photo_url": {
+          "name": "photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "items_location_gist": {
+          "name": "items_location_gist",
+          "columns": [
+            {
+              "expression": "location",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gist",
+          "with": {}
+        },
+        "items_status_idx": {
+          "name": "items_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "items_giver_id_idx": {
+          "name": "items_giver_id_idx",
+          "columns": [
+            {
+              "expression": "giver_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "items_giver_id_profiles_id_fk": {
+          "name": "items_giver_id_profiles_id_fk",
+          "tableFrom": "items",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "giver_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "items_select_active_or_own": {
+          "name": "items_select_active_or_own",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"items\".\"status\" = 'active' OR \"items\".\"giver_id\" = (select auth.uid())"
+        },
+        "items_insert_own": {
+          "name": "items_insert_own",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"items\".\"giver_id\" = (select auth.uid())"
+        },
+        "items_update_own": {
+          "name": "items_update_own",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"items\".\"giver_id\" = (select auth.uid())",
+          "withCheck": "\"items\".\"giver_id\" = (select auth.uid())"
+        },
+        "items_delete_own": {
+          "name": "items_delete_own",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"items\".\"giver_id\" = (select auth.uid())"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_id": {
+          "name": "sender_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "messages_conversation_created_idx": {
+          "name": "messages_conversation_created_idx",
+          "columns": [
+            {
+              "expression": "conversation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "messages_conversation_id_conversations_id_fk": {
+          "name": "messages_conversation_id_conversations_id_fk",
+          "tableFrom": "messages",
+          "tableTo": "conversations",
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "messages_sender_id_profiles_id_fk": {
+          "name": "messages_sender_id_profiles_id_fk",
+          "tableFrom": "messages",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "sender_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "messages_select_participant": {
+          "name": "messages_select_participant",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"messages\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )"
+        },
+        "messages_insert_as_participant_sender": {
+          "name": "messages_insert_as_participant_sender",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"messages\".\"sender_id\" = (select auth.uid()) AND EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"messages\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.pickups": {
+      "name": "pickups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversation_id": {
+          "name": "conversation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proposed_by": {
+          "name": "proposed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time": {
+          "name": "time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spot": {
+          "name": "spot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "pickup_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'proposed'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "pickups_conversation_id_idx": {
+          "name": "pickups_conversation_id_idx",
+          "columns": [
+            {
+              "expression": "conversation_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "pickups_conversation_id_conversations_id_fk": {
+          "name": "pickups_conversation_id_conversations_id_fk",
+          "tableFrom": "pickups",
+          "tableTo": "conversations",
+          "columnsFrom": [
+            "conversation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "pickups_proposed_by_profiles_id_fk": {
+          "name": "pickups_proposed_by_profiles_id_fk",
+          "tableFrom": "pickups",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "proposed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "pickups_select_participant": {
+          "name": "pickups_select_participant",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"pickups\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )"
+        },
+        "pickups_insert_as_participant": {
+          "name": "pickups_insert_as_participant",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"pickups\".\"proposed_by\" = (select auth.uid()) AND EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"pickups\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )"
+        },
+        "pickups_update_participant": {
+          "name": "pickups_update_participant",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"pickups\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )",
+          "withCheck": "EXISTS (\n        SELECT 1 FROM \"conversations\" c\n        WHERE c.id = \"pickups\".\"conversation_id\"\n        AND (c.giver_id = (select auth.uid()) OR c.receiver_id = (select auth.uid()))\n      )"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_verified": {
+          "name": "student_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "phone_verified": {
+          "name": "phone_verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "avg_rating": {
+          "name": "avg_rating",
+          "type": "numeric(3, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_count": {
+          "name": "rating_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_id_users_id_fk": {
+          "name": "profiles_id_users_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "profiles_select_all": {
+          "name": "profiles_select_all",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "true"
+        },
+        "profiles_insert_own": {
+          "name": "profiles_insert_own",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "(select auth.uid()) = id"
+        },
+        "profiles_update_own": {
+          "name": "profiles_update_own",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = id",
+          "withCheck": "(select auth.uid()) = id"
+        },
+        "profiles_delete_own": {
+          "name": "profiles_delete_own",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) = id"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.ratings": {
+      "name": "ratings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "pickup_id": {
+          "name": "pickup_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rater_id": {
+          "name": "rater_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ratee_id": {
+          "name": "ratee_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stars": {
+          "name": "stars",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "comment": {
+          "name": "comment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ratings_pickup_id_pickups_id_fk": {
+          "name": "ratings_pickup_id_pickups_id_fk",
+          "tableFrom": "ratings",
+          "tableTo": "pickups",
+          "columnsFrom": [
+            "pickup_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ratings_rater_id_profiles_id_fk": {
+          "name": "ratings_rater_id_profiles_id_fk",
+          "tableFrom": "ratings",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "rater_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ratings_ratee_id_profiles_id_fk": {
+          "name": "ratings_ratee_id_profiles_id_fk",
+          "tableFrom": "ratings",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "ratee_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ratings_pickup_rater_unique": {
+          "name": "ratings_pickup_rater_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "pickup_id",
+            "rater_id"
+          ]
+        }
+      },
+      "policies": {
+        "ratings_select_all": {
+          "name": "ratings_select_all",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "true"
+        },
+        "ratings_insert_after_confirmed_pickup": {
+          "name": "ratings_insert_after_confirmed_pickup",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"ratings\".\"rater_id\" = (select auth.uid()) AND \"ratings\".\"rater_id\" != \"ratings\".\"ratee_id\" AND EXISTS (\n        SELECT 1 FROM \"pickups\" p\n        WHERE p.id = \"ratings\".\"pickup_id\"\n        AND p.status IN ('confirmed', 'completed')\n      )"
+        }
+      },
+      "checkConstraints": {
+        "ratings_stars_range": {
+          "name": "ratings_stars_range",
+          "value": "\"ratings\".\"stars\" >= 1 AND \"ratings\".\"stars\" <= 5"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {
+    "public.item_category": {
+      "name": "item_category",
+      "schema": "public",
+      "values": [
+        "furniture",
+        "electronics",
+        "books",
+        "baby",
+        "clothing"
+      ]
+    },
+    "public.item_condition": {
+      "name": "item_condition",
+      "schema": "public",
+      "values": [
+        "new",
+        "good",
+        "fair"
+      ]
+    },
+    "public.item_status": {
+      "name": "item_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "pending",
+        "given",
+        "removed"
+      ]
+    },
+    "public.pickup_status": {
+      "name": "pickup_status",
+      "schema": "public",
+      "values": [
+        "proposed",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
