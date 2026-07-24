@@ -42,3 +42,10 @@ next-env.d.ts
 
 # memo
 /local_memo
+
+# claude
+.agents
+.claude
+AGENTS.md
+CLAUDE.md
+skills-lock.json
