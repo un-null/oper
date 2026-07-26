@@ -1,26 +1,47 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "@heroui/styles";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * Palette lifted from the mock HTML files in src/temp (mock/item/post/chat.html):
+ * a warm "paper" background with a green accent, matching Oper's give-away
+ * marketplace tone. Hex source colors converted to oklch to match HeroUI's
+ * variable format. Overrides HeroUI's default semantic variables rather than
+ * replacing its variable system.
+ */
+:root,
+[data-theme="light"] {
+  --background: oklch(98.45% 0.0067 97.35); /* paper #fbfaf5 */
+  --foreground: oklch(23.16% 0.0184 158.26); /* ink #16201a */
+  --muted: oklch(56.6% 0.0249 138.98); /* muted #6f7a6c */
+  --border: oklch(91.98% 0.0185 127.15); /* line #e1e7da */
+  --separator: oklch(91.98% 0.0185 127.15);
+  --accent: oklch(52.74% 0.0919 150.95); /* accent #3f7a4f */
+  --accent-foreground: oklch(98.45% 0.0067 97.35);
+  --accent-soft: oklch(94.4% 0.0203 138.44); /* accent-soft #e6f0e3 */
+  --accent-soft-foreground: oklch(52.74% 0.0919 150.95);
+  --warning: oklch(66.89% 0.137 43.78); /* clay #d9764a, used as Oper's secondary/price accent */
+  --warning-foreground: oklch(23.16% 0.0184 158.26);
+  --warning-soft: oklch(94.35% 0.0248 49.74); /* clay-soft #fbe8de */
+  --warning-soft-foreground: oklch(66.89% 0.137 43.78);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+[data-theme="dark"] {
+  --background: oklch(20% 0.012 158.26);
+  --foreground: oklch(96% 0.004 97.35);
+  --muted: oklch(70% 0.02 138.98);
+  --border: oklch(32% 0.015 150.95);
+  --separator: oklch(32% 0.015 150.95);
+  --accent: oklch(68% 0.13 150.95);
+  --accent-foreground: oklch(20% 0.012 158.26);
+  --accent-soft: oklch(30% 0.03 150.95);
+  --accent-soft-foreground: oklch(80% 0.1 150.95);
+  --warning: oklch(70% 0.13 43.78);
+  --warning-foreground: oklch(20% 0.012 158.26);
+  --warning-soft: oklch(32% 0.04 49.74);
+  --warning-soft-foreground: oklch(78% 0.11 43.78);
 }
