@@ -12,7 +12,14 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/*.d.ts", "!!**/node_modules", "!!**/.next", "!!**/drizzle"]
+    "includes": [
+      "**",
+      "!**/*.d.ts",
+      "!!**/node_modules",
+      "!!**/.next",
+      "!!**/drizzle",
+      "!!src/temp"
+    ]
   },
   "formatter": {
     "enabled": true,

@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  Button,
+  FieldError,
+  Form,
+  Input,
+  InputOTP,
+  Label,
+  Spinner,
+  TextField,
+} from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -20,11 +30,6 @@ function mapAuthError(code: string | undefined): string {
   }
 }
 
-const inputClass =
-  "rounded-md border border-black/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-black/30 disabled:opacity-50 dark:border-white/15 dark:focus:border-white/30";
-const submitClass =
-  "rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:cursor-not-allowed disabled:opacity-50";
-
 type EmailStepProps = {
   email: string;
   onEmailChange: (value: string) => void;
@@ -35,28 +40,29 @@ type EmailStepProps = {
 
 function EmailStep({ email, onEmailChange, onSubmit, isPending, error }: EmailStepProps) {
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium" htmlFor="email">
-          Student email
-        </label>
-        <input
-          autoComplete="email"
-          className={inputClass}
-          disabled={isPending}
-          id="email"
-          onChange={(e) => onEmailChange(e.target.value)}
-          placeholder="you@university.edu"
-          required
-          type="email"
-          value={email}
-        />
-      </div>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      <button className={submitClass} disabled={isPending || !email} type="submit">
-        {isPending ? "Sending…" : "Send code"}
-      </button>
-    </form>
+    <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+      <TextField
+        isDisabled={isPending}
+        isRequired
+        name="email"
+        onChange={onEmailChange}
+        type="email"
+        value={email}
+      >
+        <Label>Student email</Label>
+        <Input autoComplete="email" placeholder="you@university.edu" />
+        <FieldError />
+      </TextField>
+      {error ? <p className="text-danger text-sm">{error}</p> : null}
+      <Button isDisabled={!email} isPending={isPending} type="submit">
+        {({ isPending: pending }) => (
+          <>
+            {pending ? <Spinner color="current" size="sm" /> : null}
+            {pending ? "Sending…" : "Send code"}
+          </>
+        )}
+      </Button>
+    </Form>
   );
 }
 
@@ -84,52 +90,44 @@ function OtpStep({
   cooldownRemaining,
 }: OtpStepProps) {
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-      <p className="text-sm text-foreground/70">
-        Code sent to <span className="font-medium text-foreground">{email}</span>
+    <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+      <p className="text-muted text-sm">
+        Code sent to <span className="text-foreground font-medium">{email}</span>
       </p>
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium" htmlFor="otp">
-          Verification code
-        </label>
-        <input
-          autoComplete="one-time-code"
-          className={`${inputClass} tracking-widest`}
-          disabled={isPending}
-          id="otp"
-          inputMode="numeric"
-          maxLength={6}
-          onChange={(e) => onOtpChange(e.target.value.replace(/\D/g, ""))}
-          pattern="[0-9]*"
-          placeholder="123456"
-          required
-          type="text"
-          value={otp}
-        />
+        <Label>Verification code</Label>
+        <InputOTP isDisabled={isPending} maxLength={6} onChange={onOtpChange} value={otp}>
+          <InputOTP.Group>
+            <InputOTP.Slot index={0} />
+            <InputOTP.Slot index={1} />
+            <InputOTP.Slot index={2} />
+          </InputOTP.Group>
+          <InputOTP.Separator />
+          <InputOTP.Group>
+            <InputOTP.Slot index={3} />
+            <InputOTP.Slot index={4} />
+            <InputOTP.Slot index={5} />
+          </InputOTP.Group>
+        </InputOTP>
       </div>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      <button className={submitClass} disabled={isPending || otp.length < 6} type="submit">
-        {isPending ? "Verifying…" : "Verify"}
-      </button>
+      {error ? <p className="text-danger text-sm">{error}</p> : null}
+      <Button isDisabled={otp.length < 6} isPending={isPending} type="submit">
+        {({ isPending: pending }) => (
+          <>
+            {pending ? <Spinner color="current" size="sm" /> : null}
+            {pending ? "Verifying…" : "Verify"}
+          </>
+        )}
+      </Button>
       <div className="flex items-center justify-between text-sm">
-        <button
-          className="text-foreground/70 underline-offset-2 hover:underline disabled:opacity-50"
-          disabled={isPending}
-          onClick={onChangeEmail}
-          type="button"
-        >
+        <Button isDisabled={isPending} onPress={onChangeEmail} variant="ghost">
           Change email
-        </button>
-        <button
-          className="text-foreground/70 underline-offset-2 hover:underline disabled:opacity-50"
-          disabled={isPending || cooldownRemaining > 0}
-          onClick={onResend}
-          type="button"
-        >
+        </Button>
+        <Button isDisabled={isPending || cooldownRemaining > 0} onPress={onResend} variant="ghost">
           {cooldownRemaining > 0 ? `Resend code (${cooldownRemaining}s)` : "Resend code"}
-        </button>
+        </Button>
       </div>
-    </form>
+    </Form>
   );
 }
 

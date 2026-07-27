@@ -1,8 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { items } from "@/db/schema";
+import { items, profiles } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 /**
@@ -62,4 +63,43 @@ export function updateMyItem(
     .set(values)
     .where(and(eq(items.id, itemId), eq(items.giverId, userId)))
     .returning();
+}
+
+// --- profiles ---------------------------------------------------------------
+
+/** The acting user's own profile, or undefined if they haven't onboarded yet. */
+export async function getMyProfile(userId: string) {
+  const [profile] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+  return profile;
+}
+
+/** Create the acting user's profile. `id` is the better-auth user id (no default). */
+export async function createMyProfile(userId: string, displayName: string) {
+  const [profile] = await db.insert(profiles).values({ id: userId, displayName }).returning();
+  return profile;
+}
+
+/** Update the acting user's own profile. The `id = userId` predicate is the authorization. */
+export function updateMyProfile(userId: string, values: { displayName: string }) {
+  return db.update(profiles).set(values).where(eq(profiles.id, userId)).returning();
+}
+
+/**
+ * Session + profile gate for protected pages: redirects to /sign-in if not
+ * authenticated, or /onboarding if authenticated but without a profile row
+ * yet. This is UX routing, not the security boundary -- every Server Action
+ * that touches profile-owned data must independently call requireUserId()
+ * (or an equivalent check) itself, since pages can be bypassed by hitting
+ * Server Actions directly. See local_memo/onboarding.md for the reasoning.
+ */
+export async function requireProfile() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+  const profile = await getMyProfile(session.user.id);
+  if (!profile) {
+    redirect("/onboarding");
+  }
+  return profile;
 }
