@@ -5,6 +5,7 @@ import { linkVariants } from "@heroui/styles";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 
 const link = linkVariants();
@@ -24,7 +25,8 @@ export function SiteHeader() {
       <Link className="font-semibold" href="/">
         Oper
       </Link>
-      <div className="flex h-9 items-center text-sm">
+      <div className="flex h-9 items-center gap-3 text-sm">
+        <ThemeToggle />
         {isPending ? null : session ? (
           <div className="flex items-center gap-3">
             <span className="text-muted">Signed in as {session.user.email}</span>
