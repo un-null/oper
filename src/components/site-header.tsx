@@ -29,6 +29,9 @@ export function SiteHeader() {
         <ThemeToggle />
         {isPending ? null : session ? (
           <div className="flex items-center gap-3">
+            <Link className={link.base()} href="/items/new">
+              Give something away
+            </Link>
             <span className="text-muted">Signed in as {session.user.email}</span>
             <Button onPress={handleSignOut} variant="outline">
               Sign out
