@@ -29,6 +29,9 @@ export function SiteHeader() {
         <ThemeToggle />
         {isPending ? null : session ? (
           <div className="flex items-center gap-3">
+            <Link className={link.base()} href="/items">
+              My items
+            </Link>
             <Link className={link.base()} href="/items/new">
               Give something away
             </Link>

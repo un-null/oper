@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -24,7 +24,7 @@ export async function requireUserId(): Promise<string> {
 // items
 
 export function getMyItems(userId: string) {
-  return db.select().from(items).where(eq(items.giverId, userId));
+  return db.select().from(items).where(eq(items.giverId, userId)).orderBy(desc(items.createdAt));
 }
 
 export async function createItem(

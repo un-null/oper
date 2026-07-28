@@ -18,23 +18,10 @@ import { useActionState } from "react";
 
 import { type PostItemState, postItem } from "@/app/items/new/actions";
 import { itemCategoryEnum, itemConditionEnum } from "@/db/schema";
+import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 import { PICKUP_SPOTS } from "@/lib/pickup-spots";
 
 const initialState: PostItemState = { error: null };
-
-const CATEGORY_LABELS: Record<(typeof itemCategoryEnum.enumValues)[number], string> = {
-  furniture: "Furniture",
-  electronics: "Electronics",
-  books: "Books",
-  baby: "Baby items",
-  clothing: "Clothing",
-};
-
-const CONDITION_LABELS: Record<(typeof itemConditionEnum.enumValues)[number], string> = {
-  new: "New",
-  good: "Good",
-  fair: "Fair",
-};
 
 export function PostItemForm() {
   const [state, formAction, isPending] = useActionState(postItem, initialState);
