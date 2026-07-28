@@ -16,9 +16,6 @@ import {
 
 import { user } from "./auth-schema";
 
-// Re-export better-auth's tables so the drizzle client and drizzle-kit see
-// one combined schema. Authorization is NOT enforced by Postgres RLS -- it
-// lives in the DAL (see src/db/dal.ts). See local_memo/rls-design.md.
 export * from "./auth-schema";
 
 // enum
@@ -45,9 +42,6 @@ export const pickupStatusEnum = pgEnum("pickup_status", [
 // profiles
 
 export const profiles = pgTable("profiles", {
-  // 1:1 with better-auth's `user`. The app-facing profile (display name,
-  // verification flags, cached rating) is kept separate from better-auth's
-  // managed auth columns.
   id: uuid("id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -132,11 +126,7 @@ export const messages = pgTable(
     body: text("body").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    // Polling reads "messages newer than X for this conversation" -- this is
-    // the one query that must stay fast.
-    index("messages_conversation_created_idx").on(table.conversationId, table.createdAt),
-  ],
+  (table) => [index("messages_conversation_created_idx").on(table.conversationId, table.createdAt)],
 );
 
 // pickups
