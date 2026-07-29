@@ -68,8 +68,6 @@ export const items = pgTable(
     category: itemCategoryEnum("category").notNull(),
     condition: itemConditionEnum("condition").notNull(),
     status: itemStatusEnum("status").notNull().default("active"),
-    // SRID 4326 (WGS84), planar distance. Good enough at a 5km neighborhood
-    // scale; see the "geometry vs geography" note in the decision log.
     location: geometry("location", { type: "point", mode: "xy", srid: 4326 }).notNull(),
     pickupSpot: text("pickup_spot").notNull(),
     photoUrl: text("photo_url"),
