@@ -4,9 +4,9 @@ import { Label, ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { itemCategoryEnum } from "@/db/schema";
+import { RADIUS_OPTIONS_KM } from "@/lib/browse-params";
 import { CATEGORY_LABELS } from "@/lib/item-labels";
 import { PICKUP_SPOTS } from "@/lib/pickup-spots";
-import { RADIUS_OPTIONS_KM } from "@/lib/browse-params";
 
 export function ItemFilters() {
   const router = useRouter();

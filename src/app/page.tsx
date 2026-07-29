@@ -1,28 +1,47 @@
-import { buttonVariants, Typography } from "@heroui/react";
-import { headers } from "next/headers";
-import Link from "next/link";
+import { Typography } from "@heroui/react";
 
-import { requireProfile } from "@/db/dal";
-import { auth } from "@/lib/auth";
+import { ItemCard } from "@/components/item-card";
+import { ItemFilters } from "@/components/item-filters";
+import { findNearbyItems } from "@/db/dal";
+import { parseBrowseParams } from "@/lib/browse-params";
 
-export default async function Home() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const profile = session ? await requireProfile() : null;
+type HomeProps = {
+  searchParams: Promise<{ from?: string; radius?: string; category?: string }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = parseBrowseParams(await searchParams);
+
+  const nearbyItems = await findNearbyItems({
+    lng: params.from.lng,
+    lat: params.from.lat,
+    radiusM: params.radiusKm * 1000,
+    category: params.category,
+  });
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-32 text-center">
-      <Typography.Heading level={1}>Oper</Typography.Heading>
-      <Typography.Paragraph className="mt-3 max-w-md text-lg" color="muted">
-        Oper — give away the things you don't need to neighbors nearby.
-      </Typography.Paragraph>
-      {profile ? (
-        <p className="text-muted mt-8 text-sm">
-          Signed in as <span className="text-foreground font-medium">{profile.displayName}</span>.
-        </p>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
+      <div>
+        <Typography.Heading level={1}>Oper</Typography.Heading>
+        <Typography.Paragraph className="mt-1" color="muted">
+          Give away the things you don't need to neighbors nearby.
+        </Typography.Paragraph>
+      </div>
+
+      <ItemFilters />
+
+      {nearbyItems.length === 0 ? (
+        <div className="border-border rounded-lg border border-dashed px-6 py-16 text-center">
+          <p className="text-muted text-sm">
+            Nothing nearby yet. Try a wider radius or a different pickup spot.
+          </p>
+        </div>
       ) : (
-        <Link className={buttonVariants({ className: "mt-8" })} href="/sign-in">
-          Sign in
-        </Link>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {nearbyItems.map((item) => (
+            <ItemCard distanceKm={item.distanceKm} item={item} key={item.id} />
+          ))}
+        </div>
       )}
     </main>
   );
