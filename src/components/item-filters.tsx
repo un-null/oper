@@ -2,6 +2,7 @@
 
 import { Label, ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 
 import { itemCategoryEnum } from "@/db/schema";
 import { RADIUS_OPTIONS_KM } from "@/lib/browse-params";
@@ -12,17 +13,18 @@ export function ItemFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
     next.set(key, value);
-    router.push(`${pathname}?${next.toString()}`);
+    startTransition(() => router.push(`${pathname}?${next.toString()}`));
   }
 
   function clearParam(key: string) {
     const next = new URLSearchParams(searchParams.toString());
     next.delete(key);
-    router.push(`${pathname}?${next.toString()}`);
+    startTransition(() => router.push(`${pathname}?${next.toString()}`));
   }
 
   const currentFrom = searchParams.get("from") ?? PICKUP_SPOTS[0].id;
@@ -30,10 +32,13 @@ export function ItemFilters() {
   const currentCategory = searchParams.get("category");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className={`flex flex-col gap-4 transition-opacity ${isPending ? "opacity-60" : "opacity-100"}`}
+    >
       <div className="flex flex-col gap-1.5">
         <Label>Near</Label>
         <ToggleButtonGroup
+          isDisabled={isPending}
           onSelectionChange={(keys) => {
             const [id] = keys;
             if (typeof id === "string") setParam("from", id);
@@ -52,6 +57,7 @@ export function ItemFilters() {
       <div className="flex flex-col gap-1.5">
         <Label>Radius</Label>
         <ToggleButtonGroup
+          isDisabled={isPending}
           onSelectionChange={(keys) => {
             const [radius] = keys;
             if (typeof radius === "string") setParam("radius", radius);
@@ -70,6 +76,7 @@ export function ItemFilters() {
       <div className="flex flex-col gap-1.5">
         <Label>Category</Label>
         <ToggleButtonGroup
+          isDisabled={isPending}
           onSelectionChange={(keys) => {
             const [category] = keys;
             if (typeof category === "string") {
