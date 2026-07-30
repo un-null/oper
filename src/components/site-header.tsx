@@ -1,25 +1,17 @@
-"use client";
-
-import { Button } from "@heroui/react";
 import { linkVariants } from "@heroui/styles";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
+import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { authClient } from "@/lib/auth-client";
+import type { auth } from "@/lib/auth";
 
 const link = linkVariants();
 
-export function SiteHeader() {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+type SiteHeaderProps = {
+  session: Awaited<ReturnType<typeof auth.api.getSession>>;
+};
 
-  async function handleSignOut() {
-    await authClient.signOut();
-    router.push("/");
-    router.refresh();
-  }
-
+export function SiteHeader({ session }: SiteHeaderProps) {
   return (
     <header className="border-border flex items-center justify-between border-b px-6 py-4">
       <Link className="font-semibold" href="/">
@@ -27,7 +19,7 @@ export function SiteHeader() {
       </Link>
       <div className="flex h-9 items-center gap-3 text-sm">
         <ThemeToggle />
-        {isPending ? null : session ? (
+        {session ? (
           <div className="flex items-center gap-3">
             <Link className={link.base()} href="/items">
               My items
@@ -36,9 +28,7 @@ export function SiteHeader() {
               Give something away
             </Link>
             <span className="text-muted">Signed in as {session.user.email}</span>
-            <Button onPress={handleSignOut} variant="outline">
-              Sign out
-            </Button>
+            <SignOutButton />
           </div>
         ) : (
           <Link className={link.base()} href="/sign-in">

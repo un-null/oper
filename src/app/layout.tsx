@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 import { Providers } from "@/app/providers";
 import { SiteHeader } from "@/components/site-header";
+import { auth } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,11 +22,13 @@ export const metadata: Metadata = {
   description: "Oper — give things away to your neighbors.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <html
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
@@ -33,7 +37,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <Providers>
-          <SiteHeader />
+          <SiteHeader session={session} />
           {children}
         </Providers>
       </body>

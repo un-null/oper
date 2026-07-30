@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -55,6 +55,51 @@ export function updateMyItem(
     .set(values)
     .where(and(eq(items.id, itemId), eq(items.giverId, userId)))
     .returning();
+}
+
+type NearbyItem = Omit<typeof items.$inferSelect, "location"> & { distanceKm: number };
+
+/**
+ * Items within `radiusM` metres of (lng, lat), active only, nearest first.
+ *
+ * location::geography is required -- ST_DWithin on a bare geometry column
+ * measures in degrees, not metres (see local_memo/browse.md). Distance is
+ * computed and rounded here so exact coordinates never leave the database;
+ * the `location` column itself is not selected.
+ */
+export async function findNearbyItems(params: {
+  lng: number;
+  lat: number;
+  radiusM: number;
+  category?: (typeof items.$inferSelect)["category"];
+}): Promise<NearbyItem[]> {
+  const point = sql`ST_SetSRID(ST_MakePoint(${params.lng}, ${params.lat}), 4326)::geography`;
+  const distance = sql<number>`(round((ST_Distance(${items.location}::geography, ${point}) / 100)::numeric) / 10)::float8`;
+
+  return db
+    .select({
+      id: items.id,
+      giverId: items.giverId,
+      title: items.title,
+      description: items.description,
+      category: items.category,
+      condition: items.condition,
+      status: items.status,
+      pickupSpot: items.pickupSpot,
+      photoUrl: items.photoUrl,
+      createdAt: items.createdAt,
+      updatedAt: items.updatedAt,
+      distanceKm: distance,
+    })
+    .from(items)
+    .where(
+      and(
+        eq(items.status, "active"),
+        sql`ST_DWithin(${items.location}::geography, ${point}, ${params.radiusM})`,
+        params.category ? eq(items.category, params.category) : undefined,
+      ),
+    )
+    .orderBy(sql`${items.location} <-> ${point}`, desc(items.createdAt));
 }
 
 // profiles
