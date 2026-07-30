@@ -38,7 +38,7 @@ export default async function MyItemsPage() {
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
             {myItems.map((item) => (
-              <ItemCard item={item} key={item.id} />
+              <ItemCard href={`/items/${item.id}`} item={item} key={item.id} />
             ))}
           </div>
         )}

@@ -10,7 +10,8 @@ type HomeProps = {
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const params = parseBrowseParams(await searchParams);
+  const raw = await searchParams;
+  const params = parseBrowseParams(raw);
 
   const nearbyItems = await findNearbyItems({
     lng: params.from.lng,
@@ -18,6 +19,10 @@ export default async function Home({ searchParams }: HomeProps) {
     radiusM: params.radiusKm * 1000,
     category: params.category,
   });
+
+  const query = new URLSearchParams(
+    Object.entries(raw).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  ).toString();
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
@@ -39,7 +44,12 @@ export default async function Home({ searchParams }: HomeProps) {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {nearbyItems.map((item) => (
-            <ItemCard distanceKm={item.distanceKm} item={item} key={item.id} />
+            <ItemCard
+              distanceKm={item.distanceKm}
+              href={query ? `/items/${item.id}?${query}` : `/items/${item.id}`}
+              item={item}
+              key={item.id}
+            />
           ))}
         </div>
       )}

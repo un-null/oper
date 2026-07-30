@@ -1,0 +1,164 @@
+import { Button, buttonVariants, Chip, Typography } from "@heroui/react";
+import {
+  IconArrowLeft,
+  IconCalendar,
+  IconInfoCircle,
+  IconMapPin,
+  IconPhoto,
+} from "@tabler/icons-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { z } from "zod";
+
+import { GiverProfileCard } from "@/components/giver-profile-card";
+import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
+import { parseBrowseParams } from "@/lib/browse-params";
+import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
+import { findPickupSpot } from "@/lib/pickup-spots";
+
+export const metadata: Metadata = {
+  title: "Item — Oper",
+  description: "Item details, pickup spot, and giver profile.",
+};
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+type ItemDetailPageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string; radius?: string; category?: string }>;
+};
+
+export default async function ItemDetailPage({ params, searchParams }: ItemDetailPageProps) {
+  const { id } = await params;
+  const idResult = z.uuid().safeParse(id);
+  if (!idResult.success) {
+    notFound();
+  }
+
+  const raw = await searchParams;
+  const browseParams = parseBrowseParams(raw);
+  const hasExplicitFrom = raw.from !== undefined && findPickupSpot(raw.from) !== undefined;
+
+  const viewerId = await getViewerId();
+  const item = await findItemDetail(viewerId, idResult.data, {
+    lng: browseParams.from.lng,
+    lat: browseParams.from.lat,
+  });
+  if (!item) {
+    notFound();
+  }
+
+  const givenCount = await countGivenItems(item.giverId);
+  const isOwner = viewerId === item.giverId;
+
+  const backQuery = new URLSearchParams(
+    Object.entries(raw).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  ).toString();
+  const backHref = backQuery ? `/?${backQuery}` : "/";
+
+  return (
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10 pb-28">
+      <Link
+        aria-label="Back to nearby items"
+        className={buttonVariants({ isIconOnly: true, variant: "outline" })}
+        href={backHref}
+      >
+        <IconArrowLeft className="h-4 w-4" />
+      </Link>
+
+      <div className="border-border bg-accent-soft text-accent relative flex h-72 items-center justify-center rounded-lg border sm:h-96">
+        <IconPhoto className="h-20 w-20" />
+        <Chip className="absolute top-4 right-4" color="warning">
+          FREE
+        </Chip>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-accent text-xs font-semibold tracking-[0.18em] uppercase">
+          {CATEGORY_LABELS[item.category]} · {CONDITION_LABELS[item.condition]} condition
+        </p>
+        <Typography.Heading level={1}>{item.title}</Typography.Heading>
+        <div className="text-muted flex flex-wrap items-center gap-4 text-sm">
+          {hasExplicitFrom ? (
+            <span className="flex items-center gap-1.5">
+              <IconMapPin className="h-4 w-4" />
+              {item.distanceKm} km away
+            </span>
+          ) : null}
+          <span className="flex items-center gap-1.5">
+            <IconCalendar className="h-4 w-4" />
+            Posted {dateFormatter.format(item.createdAt)}
+          </span>
+        </div>
+        {item.description ? (
+          <Typography.Paragraph className="mt-2" color="muted">
+            {item.description}
+          </Typography.Paragraph>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="border-border rounded-lg border px-4 py-3">
+          <p className="text-muted text-xs">Category</p>
+          <p className="text-sm font-medium">{CATEGORY_LABELS[item.category]}</p>
+        </div>
+        <div className="border-border rounded-lg border px-4 py-3">
+          <p className="text-muted text-xs">Condition</p>
+          <p className="text-sm font-medium">{CONDITION_LABELS[item.condition]}</p>
+        </div>
+        <div className="border-border rounded-lg border px-4 py-3">
+          <p className="text-muted text-xs">Pickup spot</p>
+          <p className="text-sm font-medium">{item.pickupSpot}</p>
+        </div>
+        {hasExplicitFrom ? (
+          <div className="border-border rounded-lg border px-4 py-3">
+            <p className="text-muted text-xs">Distance</p>
+            <p className="text-sm font-medium">{item.distanceKm} km away</p>
+          </div>
+        ) : (
+          <div className="border-border rounded-lg border px-4 py-3">
+            <p className="text-muted text-xs">Posted</p>
+            <p className="text-sm font-medium">{dateFormatter.format(item.createdAt)}</p>
+          </div>
+        )}
+      </div>
+
+      {!hasExplicitFrom ? (
+        <p className="text-muted text-xs">
+          Distances are shown relative to a pickup spot — browse from the home page to see how far
+          this is.
+        </p>
+      ) : null}
+
+      <GiverProfileCard givenCount={givenCount} giver={item.giver} />
+
+      <p className="text-muted flex items-start gap-1.5 text-xs">
+        <IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        Exact addresses are never shown — pickup happens at a shared public spot.
+      </p>
+
+      <div className="border-border bg-background/95 sticky bottom-0 flex items-center justify-between gap-3 border-t px-1 py-4 backdrop-blur">
+        {isOwner ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">This is your item</span>
+            <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+          </div>
+        ) : viewerId === null ? (
+          <Link className={buttonVariants()} href="/sign-in">
+            Sign in to message
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Button isDisabled>Message giver</Button>
+            <span className="text-muted text-xs">Chat coming soon</span>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
