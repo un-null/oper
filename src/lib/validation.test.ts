@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { displayNameSchema, postItemSchema } from "@/lib/validation";
+import { displayNameSchema, messageBodySchema, postItemSchema } from "@/lib/validation";
 
 describe("displayNameSchema", () => {
   it("rejects an empty or whitespace-only value after trimming", () => {
@@ -23,6 +23,18 @@ describe("displayNameSchema", () => {
 
   it("rejects a non-string value (e.g. formData.get returning null)", () => {
     expect(displayNameSchema.safeParse(null).success).toBe(false);
+  });
+});
+
+describe("messageBodySchema", () => {
+  it("rejects an empty or whitespace-only value after trimming", () => {
+    expect(messageBodySchema.safeParse("").success).toBe(false);
+    expect(messageBodySchema.safeParse("   ").success).toBe(false);
+  });
+
+  it("accepts exactly 2000 characters and rejects 2001", () => {
+    expect(messageBodySchema.safeParse("a".repeat(2000)).success).toBe(true);
+    expect(messageBodySchema.safeParse("a".repeat(2001)).success).toBe(false);
   });
 });
 

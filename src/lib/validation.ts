@@ -9,6 +9,12 @@ export const displayNameSchema = z
   .min(1, "Enter a display name.")
   .max(50, "Keep it to 50 characters or fewer.");
 
+export const messageBodySchema = z
+  .string()
+  .trim()
+  .min(1, "Write a message.")
+  .max(2000, "Keep it to 2000 characters or fewer.");
+
 export const postItemSchema = z.object({
   title: z
     .string()
