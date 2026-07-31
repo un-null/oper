@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 import { signIn } from "./helpers/auth";
 import { sql } from "./helpers/db";
 
-const uniqueEmail = () => `oper-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+const uniqueEmail = () =>
+  `oper-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
 
 test.beforeAll(async () => {
   await sql`DELETE FROM items WHERE title LIKE 'E2E %'`;
