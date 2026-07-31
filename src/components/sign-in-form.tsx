@@ -96,7 +96,13 @@ function OtpStep({
       </p>
       <div className="flex flex-col gap-1.5">
         <Label>Verification code</Label>
-        <InputOTP isDisabled={isPending} maxLength={6} onChange={onOtpChange} value={otp}>
+        <InputOTP
+          aria-label="Verification code"
+          isDisabled={isPending}
+          maxLength={6}
+          onChange={onOtpChange}
+          value={otp}
+        >
           <InputOTP.Group>
             <InputOTP.Slot index={0} />
             <InputOTP.Slot index={1} />
