@@ -1,8 +1,9 @@
 import { Typography } from "@heroui/react";
+import { redirect } from "next/navigation";
 
 import { ItemCard } from "@/components/item-card";
 import { ItemFilters } from "@/components/item-filters";
-import { findNearbyItems } from "@/db/dal";
+import { findNearbyItems, getMyProfile, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 
 type HomeProps = {
@@ -10,6 +11,11 @@ type HomeProps = {
 };
 
 export default async function Home({ searchParams }: HomeProps) {
+  const viewerId = await getViewerId();
+  if (viewerId && !(await getMyProfile(viewerId))) {
+    redirect("/onboarding");
+  }
+
   const raw = await searchParams;
   const params = parseBrowseParams(raw);
 
