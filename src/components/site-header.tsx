@@ -21,6 +21,9 @@ export function SiteHeader({ session }: SiteHeaderProps) {
         <ThemeToggle />
         {session ? (
           <div className="flex items-center gap-3">
+            <Link className={link.base()} href="/messages">
+              Messages
+            </Link>
             <Link className={link.base()} href="/items">
               My items
             </Link>
