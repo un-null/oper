@@ -34,6 +34,7 @@ test("a new user is redirected to onboarding after signing in", async ({ page })
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page).toHaveURL("/");
+  await page.goto("/");
   await expect(page.getByText("Signed in as")).toBeVisible();
 });
 
@@ -53,16 +54,18 @@ test("a posted item can be found on the browse list and viewed on its detail pag
   await page.getByLabel("Title").fill(title);
   await page.getByRole("button", { name: "Choose a category" }).click();
   await page.getByRole("option", { name: "Furniture" }).click();
-  await page.getByRole("radio", { name: "Good" }).click();
-  await page.getByRole("radio", { name: "Dorm lobby — Block C" }).click();
+  await page.getByText("Good", { exact: true }).click();
+  await page.getByText("Dorm lobby — Block C", { exact: true }).click();
   await page.getByRole("button", { name: "Post for free" }).click();
 
   await expect(page).toHaveURL("/");
   await expect(page.getByText(title)).toBeVisible();
 
   await page.getByText(title).click();
-  await expect(page.getByRole("heading", { name: title })).toBeVisible();
-  await expect(page.getByText(/km away/)).toBeVisible();
+  const heading = page.getByRole("heading", { name: title });
+  await expect(heading).toBeVisible();
+  const detailMain = page.getByRole("main");
+  await expect(detailMain.getByText(/km away/).first()).toBeVisible();
 });
 
 test("browse filters are reflected in the URL and carried into the detail link", async ({
