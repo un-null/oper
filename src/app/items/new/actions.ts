@@ -1,25 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { z } from "zod";
 
 import { createItem, getMyProfile, requireUserId } from "@/db/dal";
-import { itemCategoryEnum, itemConditionEnum } from "@/db/schema";
-import { findPickupSpot, PICKUP_SPOTS } from "@/lib/pickup-spots";
-
-const postItemSchema = z.object({
-  title: z.string().trim().min(1, "Enter a title.").max(80, "Keep the title under 80 characters."),
-  description: z
-    .string()
-    .trim()
-    .max(1000, "Keep the description under 1000 characters.")
-    .optional(),
-  category: z.enum(itemCategoryEnum.enumValues, { message: "Choose a category." }),
-  condition: z.enum(itemConditionEnum.enumValues, { message: "Choose a condition." }),
-  pickupSpotId: z.enum(PICKUP_SPOTS.map((spot) => spot.id) as [string, ...string[]], {
-    message: "Choose a pickup spot.",
-  }),
-});
+import { findPickupSpot } from "@/lib/pickup-spots";
+import { postItemSchema } from "@/lib/validation";
 
 export type PostItemState = { error: string | null };
 

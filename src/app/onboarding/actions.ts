@@ -1,15 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { z } from "zod";
 
 import { createMyProfile, requireUserId } from "@/db/dal";
-
-const displayNameSchema = z
-  .string()
-  .trim()
-  .min(1, "Enter a display name.")
-  .max(50, "Keep it under 50 characters.");
+import { displayNameSchema } from "@/lib/validation";
 
 export type OnboardingState = { error: string | null };
 

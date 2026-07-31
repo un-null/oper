@@ -1,3 +1,4 @@
+import { loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
@@ -7,9 +8,6 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     fileParallelism: false,
-    env: {
-      NODE_ENV: "test",
-    },
-    envDir: ".",
+    env: loadEnv("", process.cwd(), ""),
   },
 });
