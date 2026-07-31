@@ -208,7 +208,7 @@ export type ConversationSummary = {
 };
 
 export async function getMyConversations(userId: string): Promise<ConversationSummary[]> {
-  const isGiver = eq(conversations.giverId, userId);
+  const isGiver = sql<boolean>`(${conversations.giverId} = ${userId})::boolean`;
   const lastMessage = db
     .select({
       conversationId: messages.conversationId,

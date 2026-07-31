@@ -5,8 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { findMyConversation, getConversationMessages, requireProfile } from "@/db/dal";
 import { MessageThread } from "@/components/message-thread";
+import { findMyConversation, getConversationMessages, requireProfile } from "@/db/dal";
 
 export const metadata: Metadata = {
   title: "Conversation — Oper",
@@ -56,7 +56,10 @@ export default async function ConversationPage({ params }: ConversationPageProps
       <div className="border-border flex items-center gap-3 border-t pt-4">
         <Button isDisabled>Propose pickup</Button>
         <span className="text-muted text-xs">Pickup scheduling coming soon</span>
-        <Chip className="ml-auto" color={conversation.itemStatus === "active" ? "success" : "default"}>
+        <Chip
+          className="ml-auto"
+          color={conversation.itemStatus === "active" ? "success" : "default"}
+        >
           {conversation.itemStatus}
         </Chip>
       </div>

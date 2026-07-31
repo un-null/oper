@@ -3,7 +3,7 @@
 import { Button, Form, Spinner } from "@heroui/react";
 import { useActionState } from "react";
 
-import { startConversationAction, type StartConversationState } from "@/app/messages/actions";
+import { type StartConversationState, startConversationAction } from "@/app/messages/actions";
 
 type MessageGiverButtonProps = {
   itemId: string;

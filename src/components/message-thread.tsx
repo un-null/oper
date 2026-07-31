@@ -3,7 +3,7 @@
 import { Button, FieldError, Form, Input, Label, Spinner, TextField } from "@heroui/react";
 import { useActionState, useOptimistic } from "react";
 
-import { sendMessage, type SendMessageState } from "@/app/messages/actions";
+import { type SendMessageState, sendMessage } from "@/app/messages/actions";
 import { PollRefresh } from "@/components/poll-refresh";
 import type { messages } from "@/db/schema";
 
@@ -49,14 +49,11 @@ export function MessageThread({ conversationId, viewerId, initialMessages }: Mes
   return (
     <div className="flex flex-1 flex-col gap-4">
       <PollRefresh />
-      <ul aria-label="Messages" className="flex flex-1 flex-col gap-3" role="list">
+      <ul aria-label="Messages" className="flex flex-1 flex-col gap-3">
         {optimisticMessages.map((message) => {
           const isOwn = message.senderId === viewerId;
           return (
-            <li
-              className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
-              key={message.id}
-            >
+            <li className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`} key={message.id}>
               <div
                 className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                   isOwn ? "bg-accent text-accent-foreground" : "bg-accent-soft"
