@@ -1,9 +1,9 @@
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { items, profiles } from "@/db/schema";
+import { conversations, items, messages, profiles } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
@@ -192,4 +192,173 @@ export async function requireProfile() {
     redirect("/onboarding");
   }
   return profile;
+}
+
+// conversations
+
+export type ConversationSummary = {
+  id: string;
+  itemId: string;
+  itemTitle: string;
+  itemStatus: (typeof items.$inferSelect)["status"];
+  partnerDisplayName: string;
+  isGiver: boolean;
+  lastMessageBody: string | null;
+  lastMessageAt: Date | null;
+};
+
+export async function getMyConversations(userId: string): Promise<ConversationSummary[]> {
+  const isGiver = eq(conversations.giverId, userId);
+  const lastMessage = db
+    .select({
+      conversationId: messages.conversationId,
+      body: messages.body,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .orderBy(desc(messages.createdAt))
+    .limit(1)
+    .as("last_message");
+
+  const rows = await db
+    .select({
+      id: conversations.id,
+      itemId: conversations.itemId,
+      itemTitle: items.title,
+      itemStatus: items.status,
+      isGiver,
+      partnerDisplayName: sql<string>`
+        case when ${isGiver}
+          then (select display_name from profiles where id = ${conversations.receiverId})
+          else (select display_name from profiles where id = ${conversations.giverId})
+        end
+      `,
+      lastMessageBody: lastMessage.body,
+      lastMessageAt: lastMessage.createdAt,
+      createdAt: conversations.createdAt,
+    })
+    .from(conversations)
+    .innerJoin(items, eq(items.id, conversations.itemId))
+    .leftJoin(
+      lastMessage,
+      sql`${lastMessage.conversationId} = ${conversations.id} and ${lastMessage.createdAt} = (
+        select max(created_at) from messages where conversation_id = ${conversations.id}
+      )`,
+    )
+    .where(or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)))
+    .orderBy(desc(sql`coalesce(${lastMessage.createdAt}, ${conversations.createdAt})`));
+
+  return rows.map(({ createdAt: _createdAt, ...row }) => row);
+}
+
+export type ConversationDetail = {
+  id: string;
+  itemId: string;
+  itemTitle: string;
+  itemStatus: (typeof items.$inferSelect)["status"];
+  giverId: string;
+  receiverId: string;
+  partnerDisplayName: string;
+};
+
+export async function findMyConversation(
+  userId: string,
+  conversationId: string,
+): Promise<ConversationDetail | undefined> {
+  const isGiver = eq(conversations.giverId, userId);
+
+  const [row] = await db
+    .select({
+      id: conversations.id,
+      itemId: conversations.itemId,
+      itemTitle: items.title,
+      itemStatus: items.status,
+      giverId: conversations.giverId,
+      receiverId: conversations.receiverId,
+      partnerDisplayName: sql<string>`
+        case when ${isGiver}
+          then (select display_name from profiles where id = ${conversations.receiverId})
+          else (select display_name from profiles where id = ${conversations.giverId})
+        end
+      `,
+    })
+    .from(conversations)
+    .innerJoin(items, eq(items.id, conversations.itemId))
+    .where(
+      and(
+        eq(conversations.id, conversationId),
+        or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)),
+      ),
+    )
+    .limit(1);
+
+  return row;
+}
+
+export function getConversationMessages(userId: string, conversationId: string) {
+  return db
+    .select(getTableColumns(messages))
+    .from(messages)
+    .innerJoin(
+      conversations,
+      and(
+        eq(conversations.id, messages.conversationId),
+        or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)),
+      ),
+    )
+    .where(eq(messages.conversationId, conversationId))
+    .orderBy(asc(messages.createdAt));
+}
+
+export async function startConversation(
+  userId: string,
+  itemId: string,
+): Promise<{ id: string } | { error: "not-found" | "own-item" }> {
+  const [item] = await db
+    .select({ giverId: items.giverId })
+    .from(items)
+    .where(and(eq(items.id, itemId), eq(items.status, "active")))
+    .limit(1);
+
+  if (!item) {
+    return { error: "not-found" };
+  }
+  if (item.giverId === userId) {
+    return { error: "own-item" };
+  }
+
+  const [inserted] = await db
+    .insert(conversations)
+    .values({ itemId, giverId: item.giverId, receiverId: userId })
+    .onConflictDoNothing({ target: [conversations.itemId, conversations.receiverId] })
+    .returning({ id: conversations.id });
+
+  if (inserted) {
+    return { id: inserted.id };
+  }
+
+  const [existing] = await db
+    .select({ id: conversations.id })
+    .from(conversations)
+    .where(and(eq(conversations.itemId, itemId), eq(conversations.receiverId, userId)))
+    .limit(1);
+
+  return { id: existing.id };
+}
+
+export async function createMessage(
+  userId: string,
+  conversationId: string,
+  body: string,
+): Promise<{ id: string } | undefined> {
+  const [row] = await db.execute<{ id: string }>(sql`
+    insert into messages (conversation_id, sender_id, body)
+    select ${conversationId}, ${userId}, ${body}
+    from conversations
+    where id = ${conversationId}
+      and (${userId} = giver_id or ${userId} = receiver_id)
+    returning id
+  `);
+
+  return row;
 }
