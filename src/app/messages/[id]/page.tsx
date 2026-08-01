@@ -1,4 +1,4 @@
-import { Button, buttonVariants, Chip, Typography } from "@heroui/react";
+import { buttonVariants, Chip, Typography } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -6,7 +6,13 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { MessageThread } from "@/components/message-thread";
-import { findMyConversation, getConversationMessages, requireProfile } from "@/db/dal";
+import { PickupPanel } from "@/components/pickup-panel";
+import {
+  findConversationPickup,
+  findMyConversation,
+  getConversationMessages,
+  requireProfile,
+} from "@/db/dal";
 
 export const metadata: Metadata = {
   title: "Conversation — Oper",
@@ -30,6 +36,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
   }
 
   const messages = await getConversationMessages(profile.id, conversation.id);
+  const pickup = await findConversationPickup(profile.id, conversation.id);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
@@ -45,6 +52,12 @@ export default async function ConversationPage({ params }: ConversationPageProps
           <Typography.Heading level={1}>{conversation.itemTitle}</Typography.Heading>
           <p className="text-muted text-sm">With {conversation.partnerDisplayName}</p>
         </div>
+        <Chip
+          className="ml-auto"
+          color={conversation.itemStatus === "active" ? "success" : "default"}
+        >
+          {conversation.itemStatus}
+        </Chip>
       </div>
 
       <MessageThread
@@ -53,16 +66,14 @@ export default async function ConversationPage({ params }: ConversationPageProps
         viewerId={profile.id}
       />
 
-      <div className="border-border flex items-center gap-3 border-t pt-4">
-        <Button isDisabled>Propose pickup</Button>
-        <span className="text-muted text-xs">Pickup scheduling coming soon</span>
-        <Chip
-          className="ml-auto"
-          color={conversation.itemStatus === "active" ? "success" : "default"}
-        >
-          {conversation.itemStatus}
-        </Chip>
-      </div>
+      <PickupPanel
+        conversationId={conversation.id}
+        itemId={conversation.itemId}
+        partnerDisplayName={conversation.partnerDisplayName}
+        pickup={pickup}
+        pickupSpotDefault={conversation.itemPickupSpot}
+        viewerId={profile.id}
+      />
     </main>
   );
 }
