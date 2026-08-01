@@ -76,3 +76,60 @@ test("browse filters are reflected in the URL and carried into the detail link",
   await expect(page).toHaveURL(/from=dorm-c/);
   await expect(page).toHaveURL(/radius=5/);
 });
+
+test("a receiver can message a giver and the giver sees the reply without reloading", async ({
+  browser,
+}, testInfo) => {
+  testInfo.setTimeout(60_000);
+
+  const giverEmail = uniqueEmail();
+  const receiverEmail = uniqueEmail();
+  const title = `E2E lamp ${Date.now()}`;
+
+  const giverContext = await browser.newContext();
+  const giverPage = await giverContext.newPage();
+  await signIn(giverPage, giverEmail);
+  await expect(giverPage).toHaveURL(/\/onboarding$/);
+  await giverPage.getByLabel("Display name").fill("E2E Giver");
+  await giverPage.getByRole("button", { name: "Continue" }).click();
+  await expect(giverPage).toHaveURL("/");
+
+  await giverPage.goto("/items/new");
+  await giverPage.getByLabel("Title").fill(title);
+  await giverPage.getByRole("button", { name: "Choose a category" }).click();
+  await giverPage.getByRole("option", { name: "Electronics" }).click();
+  await giverPage.getByText("Good", { exact: true }).click();
+  await giverPage.getByText("Dorm lobby — Block C", { exact: true }).click();
+  await giverPage.getByRole("button", { name: "Post for free" }).click();
+  await expect(giverPage).toHaveURL("/");
+
+  const receiverContext = await browser.newContext();
+  const receiverPage = await receiverContext.newPage();
+  await signIn(receiverPage, receiverEmail);
+  await expect(receiverPage).toHaveURL(/\/onboarding$/);
+  await receiverPage.getByLabel("Display name").fill("E2E Receiver");
+  await receiverPage.getByRole("button", { name: "Continue" }).click();
+  await expect(receiverPage).toHaveURL("/");
+
+  await receiverPage.goto("/");
+  await receiverPage.getByText(title).click();
+  await receiverPage.getByRole("button", { name: "Message giver" }).click();
+  await expect(receiverPage).toHaveURL(/\/messages\//, { timeout: 15_000 });
+
+  await receiverPage.getByRole("textbox", { name: "Message" }).fill("Is this still available?");
+  await receiverPage.getByRole("button", { name: "Send" }).click();
+  await expect(receiverPage.getByText("Is this still available?")).toBeVisible();
+
+  await giverPage.goto("/messages");
+  await giverPage.getByText(title).click();
+  await expect(giverPage.getByText("Is this still available?")).toBeVisible();
+
+  await giverPage.getByRole("textbox", { name: "Message" }).fill("Yes, come by anytime!");
+  await giverPage.getByRole("button", { name: "Send" }).click();
+  await expect(giverPage.getByText("Yes, come by anytime!")).toBeVisible();
+
+  await expect(receiverPage.getByText("Yes, come by anytime!")).toBeVisible({ timeout: 15_000 });
+
+  await giverContext.close();
+  await receiverContext.close();
+});

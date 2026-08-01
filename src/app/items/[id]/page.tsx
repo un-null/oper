@@ -1,4 +1,4 @@
-import { Button, buttonVariants, Chip, Typography } from "@heroui/react";
+import { buttonVariants, Chip, Typography } from "@heroui/react";
 import {
   IconArrowLeft,
   IconCalendar,
@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { GiverProfileCard } from "@/components/giver-profile-card";
+import { MessageGiverButton } from "@/components/message-giver-button";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
@@ -153,10 +154,7 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
             Sign in to message
           </Link>
         ) : (
-          <div className="flex items-center gap-3">
-            <Button isDisabled>Message giver</Button>
-            <span className="text-muted text-xs">Chat coming soon</span>
-          </div>
+          <MessageGiverButton itemId={item.id} />
         )}
       </div>
     </main>
