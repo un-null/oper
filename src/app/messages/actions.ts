@@ -4,8 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createMessage, getMyProfile, requireUserId, startConversation } from "@/db/dal";
-import { messageBodySchema } from "@/lib/validation";
+import {
+  cancelPickup,
+  completePickup,
+  confirmPickup,
+  createMessage,
+  getMyProfile,
+  proposePickup,
+  requireUserId,
+  startConversation,
+} from "@/db/dal";
+import { messageBodySchema, parsePickupTime, pickupProposalSchema } from "@/lib/validation";
 
 export type StartConversationState = { error: string | null };
 
@@ -62,5 +71,127 @@ export async function sendMessage(
   }
 
   revalidatePath(`/messages/${conversationIdResult.data}`);
+  return { error: null };
+}
+
+export type PickupState = { error: string | null };
+
+function revalidatePickupPaths(conversationId: string, itemId: string) {
+  revalidatePath(`/messages/${conversationId}`);
+  revalidatePath("/");
+  revalidatePath(`/items/${itemId}`);
+}
+
+export async function proposePickupAction(
+  _prevState: PickupState,
+  formData: FormData,
+): Promise<PickupState> {
+  const parsed = pickupProposalSchema.safeParse({
+    date: formData.get("date"),
+    time: formData.get("time"),
+    spot: formData.get("spot"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the pickup details." };
+  }
+
+  const conversationIdResult = z.uuid().safeParse(formData.get("conversationId"));
+  const itemIdResult = z.uuid().safeParse(formData.get("itemId"));
+  if (!conversationIdResult.success || !itemIdResult.success) {
+    return { error: "Invalid conversation." };
+  }
+
+  const time = parsePickupTime(parsed.data.date, parsed.data.time);
+  if (!time) {
+    return { error: "Choose a time in the future." };
+  }
+
+  const userId = await requireUserId();
+
+  const result = await proposePickup(userId, conversationIdResult.data, {
+    time,
+    spot: parsed.data.spot,
+  });
+  if ("error" in result) {
+    return {
+      error:
+        result.error === "already-active"
+          ? "There's already an active pickup proposal for this conversation."
+          : "You can't propose a pickup in this conversation.",
+    };
+  }
+
+  revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
+  return { error: null };
+}
+
+export async function confirmPickupAction(
+  _prevState: PickupState,
+  formData: FormData,
+): Promise<PickupState> {
+  const pickupIdResult = z.uuid().safeParse(formData.get("pickupId"));
+  const conversationIdResult = z.uuid().safeParse(formData.get("conversationId"));
+  const itemIdResult = z.uuid().safeParse(formData.get("itemId"));
+  if (!pickupIdResult.success || !conversationIdResult.success || !itemIdResult.success) {
+    return { error: "Invalid pickup." };
+  }
+
+  const userId = await requireUserId();
+
+  const result = await confirmPickup(userId, pickupIdResult.data);
+  if ("error" in result) {
+    return {
+      error:
+        result.error === "own-proposal"
+          ? "You can't confirm your own pickup proposal."
+          : "This pickup can't be confirmed.",
+    };
+  }
+
+  revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
+  return { error: null };
+}
+
+export async function cancelPickupAction(
+  _prevState: PickupState,
+  formData: FormData,
+): Promise<PickupState> {
+  const pickupIdResult = z.uuid().safeParse(formData.get("pickupId"));
+  const conversationIdResult = z.uuid().safeParse(formData.get("conversationId"));
+  const itemIdResult = z.uuid().safeParse(formData.get("itemId"));
+  if (!pickupIdResult.success || !conversationIdResult.success || !itemIdResult.success) {
+    return { error: "Invalid pickup." };
+  }
+
+  const userId = await requireUserId();
+
+  const result = await cancelPickup(userId, pickupIdResult.data);
+  if ("error" in result) {
+    return { error: "This pickup can't be cancelled." };
+  }
+
+  revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
+  return { error: null };
+}
+
+export async function completePickupAction(
+  _prevState: PickupState,
+  formData: FormData,
+): Promise<PickupState> {
+  const pickupIdResult = z.uuid().safeParse(formData.get("pickupId"));
+  const conversationIdResult = z.uuid().safeParse(formData.get("conversationId"));
+  const itemIdResult = z.uuid().safeParse(formData.get("itemId"));
+  if (!pickupIdResult.success || !conversationIdResult.success || !itemIdResult.success) {
+    return { error: "Invalid pickup." };
+  }
+
+  const userId = await requireUserId();
+
+  const result = await completePickup(userId, pickupIdResult.data);
+  if ("error" in result) {
+    return { error: "This pickup can't be marked as picked up." };
+  }
+
+  revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
   return { error: null };
 }
