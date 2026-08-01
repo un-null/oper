@@ -256,6 +256,7 @@ export type ConversationDetail = {
   itemId: string;
   itemTitle: string;
   itemStatus: (typeof items.$inferSelect)["status"];
+  itemPickupSpot: string;
   giverId: string;
   receiverId: string;
   partnerDisplayName: string;
@@ -273,6 +274,7 @@ export async function findMyConversation(
       itemId: conversations.itemId,
       itemTitle: items.title,
       itemStatus: items.status,
+      itemPickupSpot: items.pickupSpot,
       giverId: conversations.giverId,
       receiverId: conversations.receiverId,
       partnerDisplayName: sql<string>`
@@ -414,7 +416,7 @@ export async function proposePickup(
 ): Promise<{ id: string } | { error: "not-participant" | "already-active" }> {
   const [row] = await db.execute<{ id: string }>(sql`
     insert into pickups (conversation_id, proposed_by, time, spot)
-    select ${conversationId}, ${userId}, ${values.time}, ${values.spot}
+    select ${conversationId}, ${userId}, ${values.time.toISOString()}, ${values.spot}
     from conversations
     where id = ${conversationId}
       and (${userId} = giver_id or ${userId} = receiver_id)

@@ -3,11 +3,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
 import {
+  cancelPickup,
+  completePickup,
+  confirmPickup,
   createMessage,
+  findConversationPickup,
   findItemDetail,
   findMyConversation,
   getConversationMessages,
   getMyItems,
+  proposePickup,
   startConversation,
   updateMyItem,
 } from "@/db/dal";
@@ -157,6 +162,141 @@ describe("DAL authorization boundary", () => {
     it("getConversationMessages returns messages for a participant", async () => {
       const messages = await getConversationMessages(userA, conversationOfAAndB);
       expect(messages.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("pickups", () => {
+    let conversationForPickup: string;
+    let pickupId: string;
+
+    beforeAll(async () => {
+      const result = await startConversation(userA, activeItemOfB);
+      if ("id" in result) {
+        conversationForPickup = result.id;
+      }
+    });
+
+    it("proposePickup refuses a non-participant", async () => {
+      const result = await proposePickup(userC, conversationForPickup, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      expect(result).toEqual({ error: "not-participant" });
+    });
+
+    it("proposePickup creates a pickup proposed by the caller", async () => {
+      const result = await proposePickup(userA, conversationForPickup, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      expect("id" in result).toBe(true);
+      if ("id" in result) {
+        pickupId = result.id;
+      }
+    });
+
+    it("proposePickup refuses a second active proposal on the same conversation", async () => {
+      const result = await proposePickup(userA, conversationForPickup, {
+        time: new Date(Date.now() + 172_800_000),
+        spot: "Faculty building entrance",
+      });
+      expect(result).toEqual({ error: "already-active" });
+    });
+
+    it("findConversationPickup hides the pickup from a non-participant", async () => {
+      const pickup = await findConversationPickup(userC, conversationForPickup);
+      expect(pickup).toBeUndefined();
+    });
+
+    it("findConversationPickup shows the pickup to the proposer", async () => {
+      const pickup = await findConversationPickup(userA, conversationForPickup);
+      expect(pickup?.id).toBe(pickupId);
+    });
+
+    it("findConversationPickup shows the pickup to the other participant", async () => {
+      const pickup = await findConversationPickup(userB, conversationForPickup);
+      expect(pickup?.id).toBe(pickupId);
+    });
+
+    it("confirmPickup refuses the proposer confirming their own proposal", async () => {
+      const result = await confirmPickup(userA, pickupId);
+      expect(result).toEqual({ error: "own-proposal" });
+    });
+
+    it("confirmPickup refuses a non-participant", async () => {
+      const result = await confirmPickup(userC, pickupId);
+      expect(result).toEqual({ error: "not-found" });
+    });
+
+    it("confirmPickup lets the other participant confirm, and moves the item to pending", async () => {
+      const result = await confirmPickup(userB, pickupId);
+      expect(result).toEqual({ ok: true });
+
+      const [item] = await db.select().from(items).where(eq(items.id, activeItemOfB));
+      expect(item.status).toBe("pending");
+    });
+
+    it("completePickup lets a participant mark it picked up, and moves the item to given", async () => {
+      const result = await completePickup(userB, pickupId);
+      expect(result).toEqual({ ok: true });
+
+      const [item] = await db.select().from(items).where(eq(items.id, activeItemOfB));
+      expect(item.status).toBe("given");
+    });
+
+    it("cancelPickup on a completed pickup does not resurrect it", async () => {
+      const result = await cancelPickup(userA, pickupId);
+      expect(result).toEqual({ error: "not-found" });
+    });
+  });
+
+  describe("pickups cancel flow", () => {
+    let conversationForCancel: string;
+    let cancelPickupId: string;
+    let activeItemForCancel: string;
+
+    beforeAll(async () => {
+      activeItemForCancel = await createTestItem(userB, "active");
+      const result = await startConversation(userA, activeItemForCancel);
+      if ("id" in result) {
+        conversationForCancel = result.id;
+      }
+      const proposed = await proposePickup(userA, conversationForCancel, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      if ("id" in proposed) {
+        cancelPickupId = proposed.id;
+      }
+    });
+
+    it("cancelPickup refuses a non-participant", async () => {
+      const result = await cancelPickup(userC, cancelPickupId);
+      expect(result).toEqual({ error: "not-found" });
+    });
+
+    it("confirmPickup by the other participant moves the item to pending", async () => {
+      const result = await confirmPickup(userB, cancelPickupId);
+      expect(result).toEqual({ ok: true });
+
+      const [item] = await db.select().from(items).where(eq(items.id, activeItemForCancel));
+      expect(item.status).toBe("pending");
+    });
+
+    it("cancelPickup by a participant reverts the item to active", async () => {
+      const result = await cancelPickup(userA, cancelPickupId);
+      expect(result).toEqual({ ok: true });
+
+      const [item] = await db.select().from(items).where(eq(items.id, activeItemForCancel));
+      expect(item.status).toBe("active");
+    });
+
+    it("proposePickup allows a new proposal after the previous one was cancelled", async () => {
+      const result = await proposePickup(userA, conversationForCancel, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      expect("id" in result).toBe(true);
     });
   });
 });
