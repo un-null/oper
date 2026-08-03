@@ -10,6 +10,7 @@ import { PickupPanel } from "@/components/pickup-panel";
 import {
   findConversationPickup,
   findMyConversation,
+  findRatablePickup,
   getConversationMessages,
   requireProfile,
 } from "@/db/dal";
@@ -37,6 +38,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
 
   const messages = await getConversationMessages(profile.id, conversation.id);
   const pickup = await findConversationPickup(profile.id, conversation.id);
+  const ratable = await findRatablePickup(profile.id, conversation.id);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
@@ -72,6 +74,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
         partnerDisplayName={conversation.partnerDisplayName}
         pickup={pickup}
         pickupSpotDefault={conversation.itemPickupSpot}
+        ratable={ratable}
         viewerId={profile.id}
       />
     </main>
