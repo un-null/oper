@@ -59,12 +59,12 @@ describe("pickupProposalSchema", () => {
   });
 
   it("accepts exactly 120 characters for spot and rejects 121", () => {
-    expect(
-      pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(120) }).success,
-    ).toBe(true);
-    expect(
-      pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(121) }).success,
-    ).toBe(false);
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(120) }).success).toBe(
+      true,
+    );
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(121) }).success).toBe(
+      false,
+    );
   });
 
   it("rejects an empty or whitespace-only spot", () => {

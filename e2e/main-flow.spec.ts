@@ -130,6 +130,26 @@ test("a receiver can message a giver and the giver sees the reply without reload
 
   await expect(receiverPage.getByText("Yes, come by anytime!")).toBeVisible({ timeout: 15_000 });
 
+  await receiverPage.getByRole("spinbutton", { name: /^month/ }).click();
+  await receiverPage.keyboard.type("01");
+  await receiverPage.keyboard.type("01");
+  await receiverPage.keyboard.type("2099");
+
+  await receiverPage.getByRole("spinbutton", { name: /^hour/ }).click();
+  await receiverPage.keyboard.type("0230PM");
+
+  await receiverPage.getByLabel("Pickup spot").fill("Dorm lobby — Block C");
+  await receiverPage.getByRole("button", { name: "Propose pickup" }).click();
+  await expect(receiverPage.getByText(/Waiting for .* to confirm/)).toBeVisible();
+
+  await expect(giverPage.getByRole("button", { name: "Confirm" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await giverPage.getByRole("button", { name: "Confirm" }).click();
+  await expect(giverPage.getByText(/^Confirmed for/)).toBeVisible();
+
+  await expect(giverPage.getByText("pending", { exact: true })).toBeVisible();
+
   await giverContext.close();
   await receiverContext.close();
 });
