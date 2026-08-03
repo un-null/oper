@@ -15,6 +15,28 @@ export const messageBodySchema = z
   .min(1, "Write a message.")
   .max(2000, "Keep it to 2000 characters or fewer.");
 
+export const pickupProposalSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date."),
+  time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Choose a time."),
+  spot: z
+    .string()
+    .trim()
+    .min(1, "Enter a pickup spot.")
+    .max(120, "Keep it to 120 characters or fewer."),
+});
+
+export function parsePickupTime(date: string, time: string): Date | null {
+  const isoCandidate = `${date}T${time.length === 5 ? `${time}:00` : time}`;
+  const parsed = new Date(isoCandidate);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  if (parsed.getTime() <= Date.now()) {
+    return null;
+  }
+  return parsed;
+}
+
 export const postItemSchema = z.object({
   title: z
     .string()

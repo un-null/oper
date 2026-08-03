@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { conversations, items, messages, profiles } from "@/db/schema";
+import { conversations, items, messages, pickups, profiles } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
@@ -256,6 +256,7 @@ export type ConversationDetail = {
   itemId: string;
   itemTitle: string;
   itemStatus: (typeof items.$inferSelect)["status"];
+  itemPickupSpot: string;
   giverId: string;
   receiverId: string;
   partnerDisplayName: string;
@@ -273,6 +274,7 @@ export async function findMyConversation(
       itemId: conversations.itemId,
       itemTitle: items.title,
       itemStatus: items.status,
+      itemPickupSpot: items.pickupSpot,
       giverId: conversations.giverId,
       receiverId: conversations.receiverId,
       partnerDisplayName: sql<string>`
@@ -361,4 +363,197 @@ export async function createMessage(
   `);
 
   return row;
+}
+
+// pickups
+
+export type ActivePickup = {
+  id: string;
+  conversationId: string;
+  proposedBy: string;
+  time: Date;
+  spot: string;
+  status: (typeof pickups.$inferSelect)["status"];
+};
+
+export async function findConversationPickup(
+  userId: string,
+  conversationId: string,
+): Promise<ActivePickup | undefined> {
+  const [row] = await db
+    .select({
+      id: pickups.id,
+      conversationId: pickups.conversationId,
+      proposedBy: pickups.proposedBy,
+      time: pickups.time,
+      spot: pickups.spot,
+      status: pickups.status,
+    })
+    .from(pickups)
+    .innerJoin(
+      conversations,
+      and(
+        eq(conversations.id, pickups.conversationId),
+        or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)),
+      ),
+    )
+    .where(
+      and(
+        eq(pickups.conversationId, conversationId),
+        or(eq(pickups.status, "proposed"), eq(pickups.status, "confirmed")),
+      ),
+    )
+    .orderBy(desc(pickups.createdAt))
+    .limit(1);
+
+  return row;
+}
+
+export async function proposePickup(
+  userId: string,
+  conversationId: string,
+  values: { time: Date; spot: string },
+): Promise<{ id: string } | { error: "not-participant" | "already-active" }> {
+  const [row] = await db.execute<{ id: string }>(sql`
+    insert into pickups (conversation_id, proposed_by, time, spot)
+    select ${conversationId}, ${userId}, ${values.time.toISOString()}, ${values.spot}
+    from conversations
+    where id = ${conversationId}
+      and (${userId} = giver_id or ${userId} = receiver_id)
+      and not exists (
+        select 1 from pickups p
+        where p.conversation_id = ${conversationId}
+          and p.status in ('proposed', 'confirmed')
+      )
+    returning id
+  `);
+
+  if (row) {
+    return { id: row.id };
+  }
+
+  const [conversation] = await db
+    .select({ id: conversations.id })
+    .from(conversations)
+    .where(
+      and(
+        eq(conversations.id, conversationId),
+        or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)),
+      ),
+    )
+    .limit(1);
+
+  return { error: conversation ? "already-active" : "not-participant" };
+}
+
+export async function confirmPickup(
+  userId: string,
+  pickupId: string,
+): Promise<{ ok: true } | { error: "not-found" | "own-proposal" }> {
+  return db.transaction(async (tx) => {
+    const [confirmed] = await tx.execute<{ conversation_id: string }>(sql`
+      update pickups
+      set status = 'confirmed'
+      where id = ${pickupId}
+        and status = 'proposed'
+        and proposed_by <> ${userId}
+        and exists (
+          select 1 from conversations c
+          where c.id = pickups.conversation_id
+            and (${userId} = c.giver_id or ${userId} = c.receiver_id)
+        )
+      returning conversation_id
+    `);
+
+    if (!confirmed) {
+      const [pickup] = await tx
+        .select({ proposedBy: pickups.proposedBy })
+        .from(pickups)
+        .where(eq(pickups.id, pickupId))
+        .limit(1);
+
+      return { error: pickup?.proposedBy === userId ? "own-proposal" : "not-found" } as const;
+    }
+
+    await tx.execute(sql`
+      update items
+      set status = 'pending'
+      from conversations c
+      where c.id = ${confirmed.conversation_id}
+        and items.id = c.item_id
+        and items.status = 'active'
+    `);
+
+    return { ok: true } as const;
+  });
+}
+
+export async function cancelPickup(
+  userId: string,
+  pickupId: string,
+): Promise<{ ok: true } | { error: "not-found" }> {
+  return db.transaction(async (tx) => {
+    const [cancelled] = await tx.execute<{ conversation_id: string }>(sql`
+      update pickups
+      set status = 'cancelled'
+      where id = ${pickupId}
+        and status in ('proposed', 'confirmed')
+        and exists (
+          select 1 from conversations c
+          where c.id = pickups.conversation_id
+            and (${userId} = c.giver_id or ${userId} = c.receiver_id)
+        )
+      returning conversation_id
+    `);
+
+    if (!cancelled) {
+      return { error: "not-found" } as const;
+    }
+
+    await tx.execute(sql`
+      update items
+      set status = 'active'
+      from conversations c
+      where c.id = ${cancelled.conversation_id}
+        and items.id = c.item_id
+        and items.status = 'pending'
+    `);
+
+    return { ok: true } as const;
+  });
+}
+
+export async function completePickup(
+  userId: string,
+  pickupId: string,
+): Promise<{ ok: true } | { error: "not-found" }> {
+  return db.transaction(async (tx) => {
+    const [completed] = await tx.execute<{ conversation_id: string }>(sql`
+      update pickups
+      set status = 'completed'
+      where id = ${pickupId}
+        and status = 'confirmed'
+        and exists (
+          select 1 from conversations c
+          where c.id = pickups.conversation_id
+            and (${userId} = c.giver_id or ${userId} = c.receiver_id)
+        )
+      returning conversation_id
+    `);
+
+    if (!completed) {
+      return { error: "not-found" } as const;
+    }
+
+    await tx.execute(sql`
+      update items
+      set status = 'given'
+      from conversations c
+      where c.id = ${completed.conversation_id}
+        and items.id = c.item_id
+        and items.status = 'pending'
+    `);
+
+    return { ok: true } as const;
+  });
 }

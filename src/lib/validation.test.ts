@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { displayNameSchema, messageBodySchema, postItemSchema } from "@/lib/validation";
+import {
+  displayNameSchema,
+  messageBodySchema,
+  parsePickupTime,
+  pickupProposalSchema,
+  postItemSchema,
+} from "@/lib/validation";
 
 describe("displayNameSchema", () => {
   it("rejects an empty or whitespace-only value after trimming", () => {
@@ -35,6 +41,52 @@ describe("messageBodySchema", () => {
   it("accepts exactly 2000 characters and rejects 2001", () => {
     expect(messageBodySchema.safeParse("a".repeat(2000)).success).toBe(true);
     expect(messageBodySchema.safeParse("a".repeat(2001)).success).toBe(false);
+  });
+});
+
+describe("pickupProposalSchema", () => {
+  const validInput = { date: "2099-01-01", time: "14:30", spot: "Dorm lobby" };
+
+  it("accepts a minimal valid proposal", () => {
+    expect(pickupProposalSchema.safeParse(validInput).success).toBe(true);
+  });
+
+  it("rejects malformed date or time strings", () => {
+    expect(pickupProposalSchema.safeParse({ ...validInput, date: "01/01/2099" }).success).toBe(
+      false,
+    );
+    expect(pickupProposalSchema.safeParse({ ...validInput, time: "2:30pm" }).success).toBe(false);
+  });
+
+  it("accepts exactly 120 characters for spot and rejects 121", () => {
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(120) }).success).toBe(
+      true,
+    );
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "a".repeat(121) }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects an empty or whitespace-only spot", () => {
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "" }).success).toBe(false);
+    expect(pickupProposalSchema.safeParse({ ...validInput, spot: "   " }).success).toBe(false);
+  });
+});
+
+describe("parsePickupTime", () => {
+  it("accepts a time in the future", () => {
+    const future = new Date(Date.now() + 86_400_000);
+    const date = future.toISOString().slice(0, 10);
+    const time = "12:00";
+    expect(parsePickupTime(date, time)).toBeInstanceOf(Date);
+  });
+
+  it("rejects a time in the past", () => {
+    expect(parsePickupTime("2020-01-01", "12:00")).toBeNull();
+  });
+
+  it("rejects malformed input", () => {
+    expect(parsePickupTime("not-a-date", "12:00")).toBeNull();
   });
 });
 
