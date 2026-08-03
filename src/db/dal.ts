@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { conversations, items, messages, pickups, profiles } from "@/db/schema";
+import { conversations, items, messages, pickups, profiles, ratings } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
@@ -552,6 +552,108 @@ export async function completePickup(
       where c.id = ${completed.conversation_id}
         and items.id = c.item_id
         and items.status = 'pending'
+    `);
+
+    return { ok: true } as const;
+  });
+}
+
+// ratings
+
+export type RatablePickup = {
+  pickupId: string;
+  conversationId: string;
+  time: Date;
+  spot: string;
+  rateeId: string;
+  rateeDisplayName: string;
+};
+
+export async function findRatablePickup(
+  userId: string,
+  conversationId: string,
+): Promise<RatablePickup | undefined> {
+  const isGiver = eq(conversations.giverId, userId);
+
+  const [row] = await db
+    .select({
+      pickupId: pickups.id,
+      conversationId: pickups.conversationId,
+      time: pickups.time,
+      spot: pickups.spot,
+      rateeId: sql<string>`
+        case when ${isGiver} then ${conversations.receiverId} else ${conversations.giverId} end
+      `,
+      rateeDisplayName: sql<string>`
+        case when ${isGiver}
+          then (select display_name from profiles where id = ${conversations.receiverId})
+          else (select display_name from profiles where id = ${conversations.giverId})
+        end
+      `,
+    })
+    .from(pickups)
+    .innerJoin(
+      conversations,
+      and(
+        eq(conversations.id, pickups.conversationId),
+        or(eq(conversations.giverId, userId), eq(conversations.receiverId, userId)),
+      ),
+    )
+    .where(
+      and(
+        eq(pickups.conversationId, conversationId),
+        eq(pickups.status, "completed"),
+        sql`not exists (
+          select 1 from ratings r
+          where r.pickup_id = ${pickups.id} and r.rater_id = ${userId}
+        )`,
+      ),
+    )
+    .orderBy(desc(pickups.createdAt))
+    .limit(1);
+
+  return row;
+}
+
+export async function submitRating(
+  userId: string,
+  pickupId: string,
+  values: { stars: number; comment?: string },
+): Promise<{ ok: true } | { error: "not-ratable" | "already-rated" }> {
+  return db.transaction(async (tx) => {
+    const [inserted] = await tx.execute<{ ratee_id: string }>(sql`
+      insert into ratings (pickup_id, rater_id, ratee_id, stars, comment)
+      select ${pickupId}, ${userId},
+             case when c.giver_id = ${userId} then c.receiver_id else c.giver_id end,
+             ${values.stars}, ${values.comment ?? null}
+      from pickups p
+      join conversations c on c.id = p.conversation_id
+      where p.id = ${pickupId}
+        and p.status = 'completed'
+        and (${userId} = c.giver_id or ${userId} = c.receiver_id)
+      on conflict on constraint ratings_pickup_rater_unique do nothing
+      returning ratee_id
+    `);
+
+    if (!inserted) {
+      const [existing] = await tx
+        .select({ id: ratings.id })
+        .from(ratings)
+        .where(and(eq(ratings.pickupId, pickupId), eq(ratings.raterId, userId)))
+        .limit(1);
+
+      return { error: existing ? "already-rated" : "not-ratable" } as const;
+    }
+
+    await tx.execute(sql`
+      update profiles p
+      set avg_rating = agg.avg_stars,
+          rating_count = agg.n
+      from (
+        select round(avg(stars)::numeric, 2) as avg_stars, count(*)::int as n
+        from ratings where ratee_id = ${inserted.ratee_id}
+      ) agg
+      where p.id = ${inserted.ratee_id}
     `);
 
     return { ok: true } as const;

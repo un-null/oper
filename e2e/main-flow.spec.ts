@@ -150,6 +150,25 @@ test("a receiver can message a giver and the giver sees the reply without reload
 
   await expect(giverPage.getByText("pending", { exact: true })).toBeVisible();
 
+  await giverPage.getByRole("button", { name: "Mark as picked up" }).click();
+  await expect(giverPage.getByText("given", { exact: true })).toBeVisible();
+
+  await expect(giverPage.getByRole("button", { name: "Submit rating" })).toBeVisible();
+  await giverPage.getByText("5 stars", { exact: true }).click();
+  await giverPage.getByRole("button", { name: "Submit rating" }).click();
+  await expect(giverPage.getByRole("button", { name: "Submit rating" })).toBeHidden();
+
+  await expect(receiverPage.getByRole("button", { name: "Submit rating" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await receiverPage.getByText("5 stars", { exact: true }).click();
+  await receiverPage.getByRole("button", { name: "Submit rating" }).click();
+  await expect(receiverPage.getByRole("button", { name: "Submit rating" })).toBeHidden();
+
+  await giverPage.goto("/items");
+  await giverPage.getByText(title).click();
+  await expect(giverPage.getByLabel("5.0 out of 5")).toBeVisible();
+
   await giverContext.close();
   await receiverContext.close();
 });

@@ -21,7 +21,8 @@ import {
   type PickupState,
   proposePickupAction,
 } from "@/app/messages/actions";
-import type { ActivePickup } from "@/db/dal";
+import { RatingForm } from "@/components/rating-form";
+import type { ActivePickup, RatablePickup } from "@/db/dal";
 
 type PickupPanelProps = {
   conversationId: string;
@@ -29,6 +30,7 @@ type PickupPanelProps = {
   partnerDisplayName: string;
   pickupSpotDefault: string;
   pickup: ActivePickup | undefined;
+  ratable: RatablePickup | undefined;
   viewerId: string;
 };
 
@@ -45,8 +47,39 @@ export function PickupPanel({
   partnerDisplayName,
   pickupSpotDefault,
   pickup,
+  ratable,
   viewerId,
 }: PickupPanelProps) {
+  return (
+    <>
+      {ratable ? (
+        <RatingForm
+          conversationId={conversationId}
+          itemId={itemId}
+          pickupId={ratable.pickupId}
+          rateeDisplayName={ratable.rateeDisplayName}
+        />
+      ) : null}
+      <PickupStatus
+        conversationId={conversationId}
+        itemId={itemId}
+        partnerDisplayName={partnerDisplayName}
+        pickup={pickup}
+        pickupSpotDefault={pickupSpotDefault}
+        viewerId={viewerId}
+      />
+    </>
+  );
+}
+
+function PickupStatus({
+  conversationId,
+  itemId,
+  partnerDisplayName,
+  pickup,
+  pickupSpotDefault,
+  viewerId,
+}: Omit<PickupPanelProps, "ratable">) {
   if (!pickup) {
     return (
       <ProposeForm

@@ -13,8 +13,14 @@ import {
   proposePickup,
   requireUserId,
   startConversation,
+  submitRating,
 } from "@/db/dal";
-import { messageBodySchema, parsePickupTime, pickupProposalSchema } from "@/lib/validation";
+import {
+  messageBodySchema,
+  parsePickupTime,
+  pickupProposalSchema,
+  ratingSchema,
+} from "@/lib/validation";
 
 export type StartConversationState = { error: string | null };
 
@@ -190,6 +196,46 @@ export async function completePickupAction(
   const result = await completePickup(userId, pickupIdResult.data);
   if ("error" in result) {
     return { error: "This pickup can't be marked as picked up." };
+  }
+
+  revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
+  return { error: null };
+}
+
+export type RatingState = { error: string | null };
+
+export async function submitRatingAction(
+  _prevState: RatingState,
+  formData: FormData,
+): Promise<RatingState> {
+  const parsed = ratingSchema.safeParse({
+    stars: formData.get("stars"),
+    comment: formData.get("comment"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Choose a rating." };
+  }
+
+  const pickupIdResult = z.uuid().safeParse(formData.get("pickupId"));
+  const conversationIdResult = z.uuid().safeParse(formData.get("conversationId"));
+  const itemIdResult = z.uuid().safeParse(formData.get("itemId"));
+  if (!pickupIdResult.success || !conversationIdResult.success || !itemIdResult.success) {
+    return { error: "Invalid pickup." };
+  }
+
+  const userId = await requireUserId();
+
+  const result = await submitRating(userId, pickupIdResult.data, {
+    stars: parsed.data.stars,
+    comment: parsed.data.comment,
+  });
+  if ("error" in result) {
+    return {
+      error:
+        result.error === "already-rated"
+          ? "You've already rated this pickup."
+          : "You can't rate this pickup.",
+    };
   }
 
   revalidatePickupPaths(conversationIdResult.data, itemIdResult.data);
