@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
@@ -10,13 +10,15 @@ import {
   findConversationPickup,
   findItemDetail,
   findMyConversation,
+  findRatablePickup,
   getConversationMessages,
   getMyItems,
   proposePickup,
   startConversation,
+  submitRating,
   updateMyItem,
 } from "@/db/dal";
-import { conversations, items, profiles, user } from "@/db/schema";
+import { conversations, items, profiles, ratings, user } from "@/db/schema";
 
 const TEST_EMAIL_PREFIX = "oper-vitest-authz-";
 
@@ -247,6 +249,139 @@ describe("DAL authorization boundary", () => {
     it("cancelPickup on a completed pickup does not resurrect it", async () => {
       const result = await cancelPickup(userA, pickupId);
       expect(result).toEqual({ error: "not-found" });
+    });
+  });
+
+  describe("ratings", () => {
+    let conversationForRatings: string;
+    let ratablePickupId: string;
+    let confirmedOnlyPickupId: string;
+    let confirmedOnlyConversation: string;
+
+    beforeAll(async () => {
+      const item = await createTestItem(userB, "active");
+      const started = await startConversation(userA, item);
+      if ("id" in started) {
+        conversationForRatings = started.id;
+      }
+      const proposed = await proposePickup(userA, conversationForRatings, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      if ("id" in proposed) {
+        ratablePickupId = proposed.id;
+      }
+      await confirmPickup(userB, ratablePickupId);
+      await completePickup(userB, ratablePickupId);
+
+      const confirmedOnlyItem = await createTestItem(userB, "active");
+      const confirmedOnlyStarted = await startConversation(userA, confirmedOnlyItem);
+      if ("id" in confirmedOnlyStarted) {
+        confirmedOnlyConversation = confirmedOnlyStarted.id;
+      }
+      const confirmedOnlyProposed = await proposePickup(userA, confirmedOnlyConversation, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      if ("id" in confirmedOnlyProposed) {
+        confirmedOnlyPickupId = confirmedOnlyProposed.id;
+      }
+      await confirmPickup(userB, confirmedOnlyPickupId);
+    });
+
+    it("findRatablePickup hides the pickup from a non-participant", async () => {
+      const result = await findRatablePickup(userC, conversationForRatings);
+      expect(result).toBeUndefined();
+    });
+
+    it("findRatablePickup shows it to the giver with the receiver as ratee", async () => {
+      const result = await findRatablePickup(userB, conversationForRatings);
+      expect(result?.pickupId).toBe(ratablePickupId);
+      expect(result?.rateeId).toBe(userA);
+    });
+
+    it("findRatablePickup shows it to the receiver with the giver as ratee", async () => {
+      const result = await findRatablePickup(userA, conversationForRatings);
+      expect(result?.pickupId).toBe(ratablePickupId);
+      expect(result?.rateeId).toBe(userB);
+    });
+
+    it("submitRating refuses a non-participant, writing no row", async () => {
+      const result = await submitRating(userC, ratablePickupId, { stars: 5 });
+      expect(result).toEqual({ error: "not-ratable" });
+
+      const rows = await db.select().from(ratings).where(eq(ratings.pickupId, ratablePickupId));
+      expect(rows.find((row) => row.raterId === userC)).toBeUndefined();
+    });
+
+    it("submitRating refuses a pickup that is only confirmed, not completed", async () => {
+      const result = await submitRating(userB, confirmedOnlyPickupId, { stars: 5 });
+      expect(result).toEqual({ error: "not-ratable" });
+    });
+
+    it("submitRating lets the receiver rate the giver", async () => {
+      const result = await submitRating(userA, ratablePickupId, { stars: 5 });
+      expect(result).toEqual({ ok: true });
+
+      const [row] = await db
+        .select()
+        .from(ratings)
+        .where(and(eq(ratings.pickupId, ratablePickupId), eq(ratings.raterId, userA)));
+      expect(row.rateeId).toBe(userB);
+      expect(row.stars).toBe(5);
+    });
+
+    it("submitRating recomputes the ratee's cached average and count", async () => {
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, userB));
+      expect(Number(profile.avgRating)).toBe(5);
+      expect(profile.ratingCount).toBe(1);
+    });
+
+    it("submitRating refuses a second rating from the same rater", async () => {
+      const result = await submitRating(userA, ratablePickupId, { stars: 1 });
+      expect(result).toEqual({ error: "already-rated" });
+
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, userB));
+      expect(profile.ratingCount).toBe(1);
+    });
+
+    it("findRatablePickup no longer shows it to a rater who already rated", async () => {
+      const result = await findRatablePickup(userA, conversationForRatings);
+      expect(result).toBeUndefined();
+    });
+
+    it("submitRating lets the giver also rate the receiver (mutual rating)", async () => {
+      const result = await submitRating(userB, ratablePickupId, { stars: 3 });
+      expect(result).toEqual({ ok: true });
+
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, userA));
+      expect(Number(profile.avgRating)).toBe(3);
+      expect(profile.ratingCount).toBe(1);
+    });
+
+    it("recomputes the average correctly across multiple ratings for the same ratee", async () => {
+      const secondItem = await createTestItem(userB, "active");
+      const secondStarted = await startConversation(userA, secondItem);
+      let secondConversation = "";
+      if ("id" in secondStarted) {
+        secondConversation = secondStarted.id;
+      }
+      const secondProposed = await proposePickup(userA, secondConversation, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      let secondPickupId = "";
+      if ("id" in secondProposed) {
+        secondPickupId = secondProposed.id;
+      }
+      await confirmPickup(userB, secondPickupId);
+      await completePickup(userB, secondPickupId);
+
+      await submitRating(userA, secondPickupId, { stars: 3 });
+
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, userB));
+      expect(Number(profile.avgRating)).toBe(4);
+      expect(profile.ratingCount).toBe(2);
     });
   });
 

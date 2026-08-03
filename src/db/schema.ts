@@ -48,7 +48,6 @@ export const profiles = pgTable("profiles", {
   displayName: text("display_name").notNull(),
   studentVerified: boolean("student_verified").notNull().default(false),
   phoneVerified: boolean("phone_verified").notNull().default(false),
-  // Cached rating, recomputed by a trigger or scheduled job from `ratings`.
   avgRating: numeric("avg_rating", { precision: 3, scale: 2 }),
   ratingCount: smallint("rating_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

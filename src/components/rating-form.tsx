@@ -26,7 +26,12 @@ const initialState: RatingState = { error: null };
 
 const STAR_VALUES = [1, 2, 3, 4, 5] as const;
 
-export function RatingForm({ conversationId, itemId, pickupId, rateeDisplayName }: RatingFormProps) {
+export function RatingForm({
+  conversationId,
+  itemId,
+  pickupId,
+  rateeDisplayName,
+}: RatingFormProps) {
   const [state, formAction, isPending] = useActionState(submitRatingAction, initialState);
 
   return (

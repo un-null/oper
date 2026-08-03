@@ -118,12 +118,8 @@ describe("ratingSchema", () => {
   });
 
   it("accepts exactly 500 characters for comment and rejects 501", () => {
-    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(500) }).success).toBe(
-      true,
-    );
-    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(501) }).success).toBe(
-      false,
-    );
+    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(500) }).success).toBe(true);
+    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(501) }).success).toBe(false);
   });
 
   it("treats an absent or whitespace-only comment as undefined", () => {
