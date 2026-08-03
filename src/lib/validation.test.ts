@@ -6,6 +6,7 @@ import {
   parsePickupTime,
   pickupProposalSchema,
   postItemSchema,
+  ratingSchema,
 } from "@/lib/validation";
 
 describe("displayNameSchema", () => {
@@ -87,6 +88,56 @@ describe("parsePickupTime", () => {
 
   it("rejects malformed input", () => {
     expect(parsePickupTime("not-a-date", "12:00")).toBeNull();
+  });
+});
+
+describe("ratingSchema", () => {
+  const validInput = { stars: "5", comment: "Great exchange!" };
+
+  it("accepts a minimal valid rating and coerces stars to a number", () => {
+    const result = ratingSchema.safeParse(validInput);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(typeof result.data.stars).toBe("number");
+      expect(result.data.stars).toBe(5);
+    }
+  });
+
+  it("accepts the 1 and 5 boundaries and rejects 0 and 6", () => {
+    expect(ratingSchema.safeParse({ ...validInput, stars: "1" }).success).toBe(true);
+    expect(ratingSchema.safeParse({ ...validInput, stars: "5" }).success).toBe(true);
+    expect(ratingSchema.safeParse({ ...validInput, stars: "0" }).success).toBe(false);
+    expect(ratingSchema.safeParse({ ...validInput, stars: "6" }).success).toBe(false);
+  });
+
+  it("rejects a negative or non-integer or non-numeric stars value", () => {
+    expect(ratingSchema.safeParse({ ...validInput, stars: "-1" }).success).toBe(false);
+    expect(ratingSchema.safeParse({ ...validInput, stars: "3.5" }).success).toBe(false);
+    expect(ratingSchema.safeParse({ ...validInput, stars: "abc" }).success).toBe(false);
+    expect(ratingSchema.safeParse({ ...validInput, stars: null }).success).toBe(false);
+  });
+
+  it("accepts exactly 500 characters for comment and rejects 501", () => {
+    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(500) }).success).toBe(
+      true,
+    );
+    expect(ratingSchema.safeParse({ ...validInput, comment: "a".repeat(501) }).success).toBe(
+      false,
+    );
+  });
+
+  it("treats an absent or whitespace-only comment as undefined", () => {
+    const withoutComment = ratingSchema.safeParse({ stars: "5" });
+    expect(withoutComment.success).toBe(true);
+    if (withoutComment.success) {
+      expect(withoutComment.data.comment).toBeUndefined();
+    }
+
+    const whitespaceComment = ratingSchema.safeParse({ ...validInput, comment: "   " });
+    expect(whitespaceComment.success).toBe(true);
+    if (whitespaceComment.success) {
+      expect(whitespaceComment.data.comment).toBeUndefined();
+    }
   });
 });
 

@@ -54,3 +54,13 @@ export const postItemSchema = z.object({
     message: "Choose a pickup spot.",
   }),
 });
+
+export const ratingSchema = z.object({
+  stars: z.coerce.number().int().min(1, "Choose a rating.").max(5, "Choose a rating."),
+  comment: z
+    .string()
+    .trim()
+    .max(500, "Keep it to 500 characters or fewer.")
+    .optional()
+    .transform((value) => (value ? value : undefined)),
+});
