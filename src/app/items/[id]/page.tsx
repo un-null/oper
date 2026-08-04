@@ -75,14 +75,17 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
 
       <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub relative flex h-72 items-center justify-center border sm:h-96">
         <IconPhoto className="h-20 w-20" />
-        <Chip className="absolute top-4 right-4" color="warning">
-          FREE
-        </Chip>
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <Chip color="warning">FREE</Chip>
+          <Chip color="default" variant="soft">
+            {CONDITION_LABELS[item.condition]}
+          </Chip>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
         <p className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">
-          {CATEGORY_LABELS[item.category]} · {CONDITION_LABELS[item.condition]} condition
+          {CATEGORY_LABELS[item.category]}
         </p>
         <Typography.Heading level={1}>{item.title}</Typography.Heading>
         <div className="text-muted flex flex-wrap items-center gap-4 text-sm">
@@ -104,30 +107,9 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="border-border bg-surface rounded-stub border p-3.5">
-          <p className="text-muted text-xs">Category</p>
-          <p className="text-sm font-medium">{CATEGORY_LABELS[item.category]}</p>
-        </div>
-        <div className="border-border bg-surface rounded-stub border p-3.5">
-          <p className="text-muted text-xs">Condition</p>
-          <p className="text-sm font-medium">{CONDITION_LABELS[item.condition]}</p>
-        </div>
-        <div className="border-border bg-surface rounded-stub border p-3.5">
-          <p className="text-muted text-xs">Pickup spot</p>
-          <p className="text-sm font-medium">{item.pickupSpot}</p>
-        </div>
-        {hasExplicitFrom ? (
-          <div className="border-border bg-surface rounded-stub border p-3.5">
-            <p className="text-muted text-xs">Distance</p>
-            <p className="text-sm font-medium">{item.distanceKm} km away</p>
-          </div>
-        ) : (
-          <div className="border-border bg-surface rounded-stub border p-3.5">
-            <p className="text-muted text-xs">Posted</p>
-            <p className="text-sm font-medium">{dateFormatter.format(item.createdAt)}</p>
-          </div>
-        )}
+      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
+        <IconMapPin className="h-8 w-8" />
+        <p className="text-sm font-medium">{item.pickupSpot}</p>
       </div>
 
       {!hasExplicitFrom ? (
