@@ -36,64 +36,79 @@ export function ItemFilters() {
       className={`flex flex-col gap-4 transition-opacity ${isPending ? "opacity-60" : "opacity-100"}`}
     >
       <div className="flex flex-col gap-1.5">
-        <Label>Near</Label>
-        <ToggleButtonGroup
-          isDisabled={isPending}
-          onSelectionChange={(keys) => {
-            const [id] = keys;
-            if (typeof id === "string") setParam("from", id);
-          }}
-          selectedKeys={[currentFrom]}
-          selectionMode="single"
-        >
-          {PICKUP_SPOTS.map((spot) => (
-            <ToggleButton id={spot.id} key={spot.id}>
-              {spot.label}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
+          Near
+        </Label>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <ToggleButtonGroup
+            className="w-max"
+            isDisabled={isPending}
+            onSelectionChange={(keys) => {
+              const [id] = keys;
+              if (typeof id === "string") setParam("from", id);
+            }}
+            selectedKeys={[currentFrom]}
+            selectionMode="single"
+          >
+            {PICKUP_SPOTS.map((spot) => (
+              <ToggleButton id={spot.id} key={spot.id}>
+                {spot.label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label>Radius</Label>
-        <ToggleButtonGroup
-          isDisabled={isPending}
-          onSelectionChange={(keys) => {
-            const [radius] = keys;
-            if (typeof radius === "string") setParam("radius", radius);
-          }}
-          selectedKeys={[currentRadius]}
-          selectionMode="single"
-        >
-          {RADIUS_OPTIONS_KM.map((km) => (
-            <ToggleButton id={String(km)} key={km}>
-              {km} km
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
+          Radius
+        </Label>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <ToggleButtonGroup
+            className="w-max"
+            isDisabled={isPending}
+            onSelectionChange={(keys) => {
+              const [radius] = keys;
+              if (typeof radius === "string") setParam("radius", radius);
+            }}
+            selectedKeys={[currentRadius]}
+            selectionMode="single"
+          >
+            {RADIUS_OPTIONS_KM.map((km) => (
+              <ToggleButton id={String(km)} key={km}>
+                {km} km
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label>Category</Label>
-        <ToggleButtonGroup
-          isDisabled={isPending}
-          onSelectionChange={(keys) => {
-            const [category] = keys;
-            if (typeof category === "string") {
-              setParam("category", category);
-            } else {
-              clearParam("category");
-            }
-          }}
-          selectedKeys={currentCategory ? [currentCategory] : []}
-          selectionMode="single"
-        >
-          {itemCategoryEnum.enumValues.map((value) => (
-            <ToggleButton id={value} key={value}>
-              {CATEGORY_LABELS[value]}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
+          Category
+        </Label>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <ToggleButtonGroup
+            className="w-max"
+            isDisabled={isPending}
+            onSelectionChange={(keys) => {
+              const [category] = keys;
+              if (typeof category === "string") {
+                setParam("category", category);
+              } else {
+                clearParam("category");
+              }
+            }}
+            selectedKeys={currentCategory ? [currentCategory] : []}
+            selectionMode="single"
+          >
+            {itemCategoryEnum.enumValues.map((value) => (
+              <ToggleButton id={value} key={value}>
+                {CATEGORY_LABELS[value]}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </div>
       </div>
     </div>
   );

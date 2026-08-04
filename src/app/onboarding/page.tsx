@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { OnboardingForm } from "@/components/onboarding-form";
+import { PageShell } from "@/components/page-shell";
 import { getMyProfile } from "@/db/dal";
 import { auth } from "@/lib/auth";
 
@@ -23,12 +24,10 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-semibold">Set up your profile</h1>
-        <p className="text-muted mb-6 text-sm">One more step before you can give and receive.</p>
-        <OnboardingForm />
-      </div>
-    </div>
+    <PageShell center width="form">
+      <h1 className="mb-1 text-2xl font-semibold">Set up your profile</h1>
+      <p className="text-muted mb-6 text-sm">One more step before you can give and receive.</p>
+      <OnboardingForm />
+    </PageShell>
   );
 }

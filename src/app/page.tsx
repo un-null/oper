@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ItemCard } from "@/components/item-card";
 import { ItemFilters } from "@/components/item-filters";
+import { PageShell } from "@/components/page-shell";
 import { findNearbyItems, getMyProfile, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 
@@ -31,7 +32,7 @@ export default async function Home({ searchParams }: HomeProps) {
   ).toString();
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
+    <PageShell className="gap-8" width="feed">
       <div>
         <Typography.Heading level={1}>Oper</Typography.Heading>
         <Typography.Paragraph className="mt-1" color="muted">
@@ -59,6 +60,6 @@ export default async function Home({ searchParams }: HomeProps) {
           ))}
         </div>
       )}
-    </main>
+    </PageShell>
   );
 }

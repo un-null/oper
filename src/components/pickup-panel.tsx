@@ -94,12 +94,12 @@ function PickupStatus({
 
   if (pickup.status === "proposed" && isOwnProposal) {
     return (
-      <div className="border-border flex items-center gap-3 border-t pt-4">
+      <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
         <span className="text-sm">
           Waiting for {partnerDisplayName} to confirm — {dateTimeFormatter.format(pickup.time)} at{" "}
           {pickup.spot}
         </span>
-        <div className="ml-auto">
+        <div className="flex gap-2 sm:ml-auto">
           <CancelButton conversationId={conversationId} itemId={itemId} pickupId={pickup.id} />
         </div>
       </div>
@@ -108,11 +108,11 @@ function PickupStatus({
 
   if (pickup.status === "proposed") {
     return (
-      <div className="border-border flex items-center gap-3 border-t pt-4">
+      <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
         <span className="text-sm">
           {partnerDisplayName} proposed {dateTimeFormatter.format(pickup.time)} at {pickup.spot}
         </span>
-        <div className="ml-auto flex gap-2">
+        <div className="flex gap-2 sm:ml-auto">
           <ConfirmButton conversationId={conversationId} itemId={itemId} pickupId={pickup.id} />
           <CancelButton
             conversationId={conversationId}
@@ -126,11 +126,11 @@ function PickupStatus({
   }
 
   return (
-    <div className="border-border flex items-center gap-3 border-t pt-4">
+    <div className="border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
       <span className="text-sm">
         Confirmed for {dateTimeFormatter.format(pickup.time)} at {pickup.spot}
       </span>
-      <div className="ml-auto flex gap-2">
+      <div className="flex gap-2 sm:ml-auto">
         <CompleteButton conversationId={conversationId} itemId={itemId} pickupId={pickup.id} />
         <CancelButton conversationId={conversationId} itemId={itemId} pickupId={pickup.id} />
       </div>

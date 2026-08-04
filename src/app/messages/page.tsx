@@ -2,6 +2,7 @@ import { buttonVariants, Typography } from "@heroui/react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PageShell } from "@/components/page-shell";
 import { getMyConversations, requireProfile } from "@/db/dal";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default async function MessagesPage() {
   const conversations = await getMyConversations(profile.id);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
+    <PageShell className="gap-8" width="focused">
       <div>
         <Typography.Heading level={1}>Messages</Typography.Heading>
         <Typography.Paragraph className="mt-1" color="muted">
@@ -65,6 +66,6 @@ export default async function MessagesPage() {
           ))}
         </ul>
       )}
-    </main>
+    </PageShell>
   );
 }

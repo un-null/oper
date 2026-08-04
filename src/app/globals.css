@@ -1,18 +1,17 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --radius-stub: 14px;
 }
 
-/*
- * Palette lifted from the mock HTML files in src/temp (mock/item/post/chat.html):
- * a warm "paper" background with a green accent, matching Oper's give-away
- * marketplace tone. Hex source colors converted to oklch to match HeroUI's
- * variable format. Overrides HeroUI's default semantic variables rather than
- * replacing its variable system.
- */
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --shadow-card-hover: var(--card-hover-shadow);
+}
+
 :root,
 [data-theme="light"] {
   --background: oklch(98.45% 0.0067 97.35); /* paper #fbfaf5 */
@@ -20,6 +19,8 @@
   --muted: oklch(56.6% 0.0249 138.98); /* muted #6f7a6c */
   --border: oklch(91.98% 0.0185 127.15); /* line #e1e7da */
   --separator: oklch(91.98% 0.0185 127.15);
+  --surface: oklch(100% 0 0);
+  --surface-foreground: var(--foreground);
   --accent: oklch(52.74% 0.0919 150.95); /* accent #3f7a4f */
   --accent-foreground: oklch(98.45% 0.0067 97.35);
   --accent-soft: oklch(94.4% 0.0203 138.44); /* accent-soft #e6f0e3 */
@@ -28,6 +29,9 @@
   --warning-foreground: oklch(23.16% 0.0184 158.26);
   --warning-soft: oklch(94.35% 0.0248 49.74); /* clay-soft #fbe8de */
   --warning-soft-foreground: oklch(66.89% 0.137 43.78);
+  --grain: oklch(91.98% 0.0185 127.15);
+  --grain-opacity: 0.5;
+  --card-hover-shadow: 0 18px 40px -22px oklch(23.16% 0.0184 158.26 / 0.45);
 }
 
 [data-theme="dark"] {
@@ -36,6 +40,8 @@
   --muted: oklch(70% 0.02 138.98);
   --border: oklch(32% 0.015 150.95);
   --separator: oklch(32% 0.015 150.95);
+  --surface: oklch(24.5% 0.014 158.26);
+  --surface-foreground: var(--foreground);
   --accent: oklch(68% 0.13 150.95);
   --accent-foreground: oklch(20% 0.012 158.26);
   --accent-soft: oklch(30% 0.03 150.95);
@@ -44,4 +50,46 @@
   --warning-foreground: oklch(20% 0.012 158.26);
   --warning-soft: oklch(32% 0.04 49.74);
   --warning-soft-foreground: oklch(78% 0.11 43.78);
+  --grain: oklch(40% 0.02 150.95);
+  --grain-opacity: 0.35;
+  --card-hover-shadow: 0 18px 40px -22px oklch(0% 0 0 / 0.6);
+}
+
+@layer components {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: radial-gradient(var(--grain) 0.5px, transparent 0.5px);
+    background-size: 22px 22px;
+  }
+
+  .stub-perf {
+    position: relative;
+    border-top: 2px dashed var(--border);
+  }
+
+  .stub-perf::before,
+  .stub-perf::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    background: var(--background);
+    border: 2px solid var(--border);
+    border-radius: 9999px;
+    transform: translateY(-50%);
+  }
+
+  .stub-perf::before {
+    left: -12px;
+  }
+
+  .stub-perf::after {
+    right: -12px;
+  }
 }

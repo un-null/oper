@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 
 import { Providers } from "@/app/providers";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteHeader } from "@/components/site-header";
 import { auth } from "@/lib/auth";
 
@@ -20,6 +21,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Oper",
   description: "Oper — give things away to your neighbors.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -39,6 +46,8 @@ export default async function RootLayout({
         <Providers>
           <SiteHeader session={session} />
           {children}
+          <MobileTabBar isSignedIn={session !== null} />
+          <div aria-hidden className="h-20 shrink-0 sm:hidden" />
         </Providers>
       </body>
     </html>
