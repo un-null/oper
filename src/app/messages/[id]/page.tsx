@@ -67,17 +67,17 @@ export default async function ConversationPage({ params }: ConversationPageProps
         conversationId={conversation.id}
         initialMessages={messages}
         viewerId={profile.id}
-      />
-
-      <PickupPanel
-        conversationId={conversation.id}
-        itemId={conversation.itemId}
-        partnerDisplayName={conversation.partnerDisplayName}
-        pickup={pickup}
-        pickupSpotDefault={conversation.itemPickupSpot}
-        ratable={ratable}
-        viewerId={profile.id}
-      />
+      >
+        <PickupPanel
+          conversationId={conversation.id}
+          itemId={conversation.itemId}
+          partnerDisplayName={conversation.partnerDisplayName}
+          pickup={pickup}
+          pickupSpotDefault={conversation.itemPickupSpot}
+          ratable={ratable}
+          viewerId={profile.id}
+        />
+      </MessageThread>
     </PageShell>
   );
 }
