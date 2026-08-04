@@ -37,12 +37,7 @@ export default function PickupMapInner({ lng, lat, label }: PickupMapInnerProps)
   const tileUrl = resolvedTheme === "dark" ? TILE_URL_DARK : TILE_URL_LIGHT;
 
   return (
-    <MapContainer
-      center={[lat, lng]}
-      className="h-full w-full"
-      scrollWheelZoom={false}
-      zoom={16}
-    >
+    <MapContainer center={[lat, lng]} className="h-full w-full" scrollWheelZoom={false} zoom={16}>
       <TileLayer attribution={ATTRIBUTION} url={tileUrl} />
       <Marker icon={pinIcon} position={[lat, lng]}>
         <Tooltip direction="top" offset={[0, -28]} permanent>

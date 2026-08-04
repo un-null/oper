@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { findPickupSpot, PICKUP_SPOTS } from "@/lib/pickup-spots";
+import { findPickupSpot, findPickupSpotByLabel, PICKUP_SPOTS } from "@/lib/pickup-spots";
 
 describe("PICKUP_SPOTS", () => {
   it("has unique ids", () => {
@@ -35,5 +35,22 @@ describe("findPickupSpot", () => {
   it("returns undefined for an unknown or empty id", () => {
     expect(findPickupSpot("")).toBeUndefined();
     expect(findPickupSpot("nonexistent")).toBeUndefined();
+  });
+});
+
+describe("findPickupSpotByLabel", () => {
+  it("finds a spot by exact label", () => {
+    expect(findPickupSpotByLabel("Dorm lobby — Block C")?.id).toBe("dorm-c");
+    expect(findPickupSpotByLabel("Faculty building entrance")?.id).toBe("faculty");
+    expect(findPickupSpotByLabel("Campus main gate")?.id).toBe("main-gate");
+  });
+
+  it("returns undefined for a label that does not match any known spot", () => {
+    expect(findPickupSpotByLabel("")).toBeUndefined();
+    expect(findPickupSpotByLabel("Somewhere off campus")).toBeUndefined();
+  });
+
+  it("is case-sensitive", () => {
+    expect(findPickupSpotByLabel("dorm lobby — block c")).toBeUndefined();
   });
 });
