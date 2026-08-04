@@ -13,6 +13,7 @@ type MessageThreadProps = {
   conversationId: string;
   viewerId: string;
   initialMessages: Message[];
+  children?: React.ReactNode;
 };
 
 const initialState: SendMessageState = { error: null };
@@ -22,7 +23,12 @@ const timeFormatter = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
-export function MessageThread({ conversationId, viewerId, initialMessages }: MessageThreadProps) {
+export function MessageThread({
+  conversationId,
+  viewerId,
+  initialMessages,
+  children,
+}: MessageThreadProps) {
   const [state, formAction, isPending] = useActionState(sendMessage, initialState);
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     initialMessages,
@@ -68,6 +74,8 @@ export function MessageThread({ conversationId, viewerId, initialMessages }: Mes
           );
         })}
       </ul>
+
+      {children}
 
       <Form action={handleSubmit} className="flex items-end gap-2">
         <input name="conversationId" type="hidden" value={conversationId} />

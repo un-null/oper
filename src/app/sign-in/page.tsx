@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageShell } from "@/components/page-shell";
 import { SignInForm } from "@/components/sign-in-form";
 
 export const metadata: Metadata = {
@@ -9,14 +10,12 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-semibold">Sign in</h1>
-        <p className="mb-6 text-sm text-foreground/70">
-          We'll email you a one-time code — no password needed.
-        </p>
-        <SignInForm />
-      </div>
-    </div>
+    <PageShell center width="form">
+      <h1 className="mb-1 text-2xl font-semibold">Sign in</h1>
+      <p className="mb-6 text-sm text-foreground/70">
+        We'll email you a one-time code — no password needed.
+      </p>
+      <SignInForm />
+    </PageShell>
   );
 }

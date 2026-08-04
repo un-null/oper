@@ -3,21 +3,12 @@ import { IconShieldCheck } from "@tabler/icons-react";
 
 import { RatingStars } from "@/components/rating-stars";
 import type { ItemDetail } from "@/db/dal";
+import { initialsFor } from "@/lib/initials";
 
 type GiverProfileCardProps = {
   giver: ItemDetail["giver"];
   givenCount: number;
 };
-
-function initialsFor(displayName: string) {
-  const initials = displayName
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("");
-  return initials ? initials.toUpperCase() : "?";
-}
 
 export function GiverProfileCard({ giver, givenCount }: GiverProfileCardProps) {
   return (

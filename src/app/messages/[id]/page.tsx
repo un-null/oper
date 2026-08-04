@@ -1,4 +1,4 @@
-import { buttonVariants, Chip, Typography } from "@heroui/react";
+import { Avatar, buttonVariants, Chip, Typography } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { MessageThread } from "@/components/message-thread";
+import { PageShell } from "@/components/page-shell";
 import { PickupPanel } from "@/components/pickup-panel";
 import {
   findConversationPickup,
@@ -14,6 +15,7 @@ import {
   getConversationMessages,
   requireProfile,
 } from "@/db/dal";
+import { initialsFor } from "@/lib/initials";
 
 export const metadata: Metadata = {
   title: "Conversation — Oper",
@@ -41,7 +43,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
   const ratable = await findRatablePickup(profile.id, conversation.id);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
+    <PageShell className="gap-6" width="focused">
       <div className="flex items-center gap-3">
         <Link
           aria-label="Back to messages"
@@ -50,12 +52,15 @@ export default async function ConversationPage({ params }: ConversationPageProps
         >
           <IconArrowLeft className="h-4 w-4" />
         </Link>
-        <div>
-          <Typography.Heading level={1}>{conversation.itemTitle}</Typography.Heading>
-          <p className="text-muted text-sm">With {conversation.partnerDisplayName}</p>
+        <Avatar>
+          <Avatar.Fallback>{initialsFor(conversation.partnerDisplayName)}</Avatar.Fallback>
+        </Avatar>
+        <div className="min-w-0">
+          <Typography.Heading level={1}>{conversation.partnerDisplayName}</Typography.Heading>
+          <p className="text-muted truncate text-sm">{conversation.itemTitle}</p>
         </div>
         <Chip
-          className="ml-auto"
+          className="ml-auto shrink-0"
           color={conversation.itemStatus === "active" ? "success" : "default"}
         >
           {conversation.itemStatus}
@@ -66,17 +71,17 @@ export default async function ConversationPage({ params }: ConversationPageProps
         conversationId={conversation.id}
         initialMessages={messages}
         viewerId={profile.id}
-      />
-
-      <PickupPanel
-        conversationId={conversation.id}
-        itemId={conversation.itemId}
-        partnerDisplayName={conversation.partnerDisplayName}
-        pickup={pickup}
-        pickupSpotDefault={conversation.itemPickupSpot}
-        ratable={ratable}
-        viewerId={profile.id}
-      />
-    </main>
+      >
+        <PickupPanel
+          conversationId={conversation.id}
+          itemId={conversation.itemId}
+          partnerDisplayName={conversation.partnerDisplayName}
+          pickup={pickup}
+          pickupSpotDefault={conversation.itemPickupSpot}
+          ratable={ratable}
+          viewerId={profile.id}
+        />
+      </MessageThread>
+    </PageShell>
   );
 }

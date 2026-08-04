@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { GiverProfileCard } from "@/components/giver-profile-card";
 import { MessageGiverButton } from "@/components/message-giver-button";
+import { PageShell } from "@/components/page-shell";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
@@ -63,7 +64,7 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
   const backHref = backQuery ? `/?${backQuery}` : "/";
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10 pb-28">
+    <PageShell className="gap-8" stickyCta width="focused">
       <Link
         aria-label="Back to nearby items"
         className={buttonVariants({ isIconOnly: true, variant: "outline" })}
@@ -72,16 +73,19 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         <IconArrowLeft className="h-4 w-4" />
       </Link>
 
-      <div className="border-border bg-accent-soft text-accent relative flex h-72 items-center justify-center rounded-lg border sm:h-96">
+      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub relative flex h-72 items-center justify-center border sm:h-96">
         <IconPhoto className="h-20 w-20" />
-        <Chip className="absolute top-4 right-4" color="warning">
-          FREE
-        </Chip>
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <Chip color="warning">FREE</Chip>
+          <Chip color="default" variant="soft">
+            {CONDITION_LABELS[item.condition]}
+          </Chip>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-accent text-xs font-semibold tracking-[0.18em] uppercase">
-          {CATEGORY_LABELS[item.category]} · {CONDITION_LABELS[item.condition]} condition
+        <p className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">
+          {CATEGORY_LABELS[item.category]}
         </p>
         <Typography.Heading level={1}>{item.title}</Typography.Heading>
         <div className="text-muted flex flex-wrap items-center gap-4 text-sm">
@@ -103,30 +107,9 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border-border rounded-lg border px-4 py-3">
-          <p className="text-muted text-xs">Category</p>
-          <p className="text-sm font-medium">{CATEGORY_LABELS[item.category]}</p>
-        </div>
-        <div className="border-border rounded-lg border px-4 py-3">
-          <p className="text-muted text-xs">Condition</p>
-          <p className="text-sm font-medium">{CONDITION_LABELS[item.condition]}</p>
-        </div>
-        <div className="border-border rounded-lg border px-4 py-3">
-          <p className="text-muted text-xs">Pickup spot</p>
-          <p className="text-sm font-medium">{item.pickupSpot}</p>
-        </div>
-        {hasExplicitFrom ? (
-          <div className="border-border rounded-lg border px-4 py-3">
-            <p className="text-muted text-xs">Distance</p>
-            <p className="text-sm font-medium">{item.distanceKm} km away</p>
-          </div>
-        ) : (
-          <div className="border-border rounded-lg border px-4 py-3">
-            <p className="text-muted text-xs">Posted</p>
-            <p className="text-sm font-medium">{dateFormatter.format(item.createdAt)}</p>
-          </div>
-        )}
+      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
+        <IconMapPin className="h-8 w-8" />
+        <p className="text-sm font-medium">{item.pickupSpot}</p>
       </div>
 
       {!hasExplicitFrom ? (
@@ -143,20 +126,22 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         Exact addresses are never shown — pickup happens at a shared public spot.
       </p>
 
-      <div className="border-border bg-background/95 sticky bottom-0 flex items-center justify-between gap-3 border-t px-1 py-4 backdrop-blur">
-        {isOwner ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">This is your item</span>
-            <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
-          </div>
-        ) : viewerId === null ? (
-          <Link className={buttonVariants()} href="/sign-in">
-            Sign in to message
-          </Link>
-        ) : (
-          <MessageGiverButton itemId={item.id} />
-        )}
+      <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-10 border-t px-4 py-3 backdrop-blur sm:px-6">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          {isOwner ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">This is your item</span>
+              <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+            </div>
+          ) : viewerId === null ? (
+            <Link className={buttonVariants()} href="/sign-in">
+              Sign in to message
+            </Link>
+          ) : (
+            <MessageGiverButton itemId={item.id} />
+          )}
+        </div>
       </div>
-    </main>
+    </PageShell>
   );
 }

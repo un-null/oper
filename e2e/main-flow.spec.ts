@@ -146,7 +146,7 @@ test("a receiver can message a giver and the giver sees the reply without reload
     timeout: 15_000,
   });
   await giverPage.getByRole("button", { name: "Confirm" }).click();
-  await expect(giverPage.getByText(/^Confirmed for/)).toBeVisible();
+  await expect(giverPage.getByText("Confirmed", { exact: true })).toBeVisible();
 
   await expect(giverPage.getByText("pending", { exact: true })).toBeVisible();
 
