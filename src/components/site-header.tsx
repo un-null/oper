@@ -8,6 +8,8 @@ import type { auth } from "@/lib/auth";
 const link = linkVariants();
 const pill =
   "border-border text-foreground hover:border-foreground rounded-full border px-4 py-1.5 transition-colors";
+const ctaPill =
+  "bg-accent text-accent-foreground rounded-full px-4 py-1.5 transition-opacity hover:opacity-90";
 
 type SiteHeaderProps = {
   session: Awaited<ReturnType<typeof auth.api.getSession>>;
@@ -36,7 +38,7 @@ export function SiteHeader({ session }: SiteHeaderProps) {
             <Link className={link.base()} href="/messages">
               Messages
             </Link>
-            <Link className={pill} href="/items/new">
+            <Link className={ctaPill} href="/items/new">
               Give something away
             </Link>
             <span className="text-muted">Signed in as {session.user.email}</span>

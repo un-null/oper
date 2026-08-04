@@ -22,7 +22,7 @@ export function MobileTabBar({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <nav
       aria-label="Primary"
-      className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 items-center border-t pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+      className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 items-center border-t pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
     >
       <Link
         aria-current={isActive(pathname, "/") ? "page" : undefined}
@@ -58,6 +58,8 @@ export function MobileTabBar({ isSignedIn }: { isSignedIn: boolean }) {
         <IconMessageCircle className="h-5 w-5" />
         <span className="text-[11px] font-medium">Messages</span>
       </Link>
+
+      <div aria-hidden="true" />
     </nav>
   );
 }
