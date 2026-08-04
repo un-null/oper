@@ -1,9 +1,10 @@
-import { buttonVariants, Typography } from "@heroui/react";
+import { Avatar, buttonVariants, Typography } from "@heroui/react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
 import { getMyConversations, requireProfile } from "@/db/dal";
+import { initialsFor } from "@/lib/initials";
 
 export const metadata: Metadata = {
   title: "Messages — Oper",
@@ -42,25 +43,32 @@ export default async function MessagesPage() {
           {conversations.map((conversation) => (
             <li key={conversation.id}>
               <Link
-                className="border-border hover:bg-accent-soft flex flex-col gap-1 rounded-lg border px-4 py-3 transition-colors"
+                className="border-border hover:bg-accent-soft flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
                 href={`/messages/${conversation.id}`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-medium">{conversation.itemTitle}</span>
-                  {conversation.lastMessageAt ? (
-                    <span className="text-muted shrink-0 text-xs">
-                      {timeFormatter.format(conversation.lastMessageAt)}
+                <Avatar>
+                  <Avatar.Fallback>{initialsFor(conversation.partnerDisplayName)}</Avatar.Fallback>
+                </Avatar>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate text-sm font-medium">
+                      {conversation.partnerDisplayName}
                     </span>
-                  ) : null}
+                    {conversation.lastMessageAt ? (
+                      <span className="text-muted shrink-0 text-xs">
+                        {timeFormatter.format(conversation.lastMessageAt)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="text-muted truncate text-xs">
+                    {conversation.isGiver ? "Giving" : "Receiving"} · {conversation.itemTitle}
+                  </span>
+                  {conversation.lastMessageBody ? (
+                    <p className="text-muted truncate text-sm">{conversation.lastMessageBody}</p>
+                  ) : (
+                    <p className="text-muted text-sm italic">No messages yet</p>
+                  )}
                 </div>
-                <span className="text-muted text-xs">
-                  {conversation.isGiver ? "From" : "To"} {conversation.partnerDisplayName}
-                </span>
-                {conversation.lastMessageBody ? (
-                  <p className="text-muted truncate text-sm">{conversation.lastMessageBody}</p>
-                ) : (
-                  <p className="text-muted text-sm italic">No messages yet</p>
-                )}
               </Link>
             </li>
           ))}

@@ -1,4 +1,4 @@
-import { buttonVariants, Chip, Typography } from "@heroui/react";
+import { Avatar, buttonVariants, Chip, Typography } from "@heroui/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
   getConversationMessages,
   requireProfile,
 } from "@/db/dal";
+import { initialsFor } from "@/lib/initials";
 
 export const metadata: Metadata = {
   title: "Conversation — Oper",
@@ -51,12 +52,15 @@ export default async function ConversationPage({ params }: ConversationPageProps
         >
           <IconArrowLeft className="h-4 w-4" />
         </Link>
-        <div>
-          <Typography.Heading level={1}>{conversation.itemTitle}</Typography.Heading>
-          <p className="text-muted text-sm">With {conversation.partnerDisplayName}</p>
+        <Avatar>
+          <Avatar.Fallback>{initialsFor(conversation.partnerDisplayName)}</Avatar.Fallback>
+        </Avatar>
+        <div className="min-w-0">
+          <Typography.Heading level={1}>{conversation.partnerDisplayName}</Typography.Heading>
+          <p className="text-muted truncate text-sm">{conversation.itemTitle}</p>
         </div>
         <Chip
-          className="ml-auto"
+          className="ml-auto shrink-0"
           color={conversation.itemStatus === "active" ? "success" : "default"}
         >
           {conversation.itemStatus}
