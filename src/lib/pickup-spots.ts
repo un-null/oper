@@ -10,3 +10,7 @@ export type PickupSpotId = PickupSpot["id"];
 export function findPickupSpot(id: string): PickupSpot | undefined {
   return PICKUP_SPOTS.find((spot) => spot.id === id);
 }
+
+export function findPickupSpotByLabel(label: string): PickupSpot | undefined {
+  return PICKUP_SPOTS.find((spot) => spot.label === label);
+}

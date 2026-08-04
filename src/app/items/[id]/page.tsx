@@ -14,10 +14,11 @@ import { z } from "zod";
 import { GiverProfileCard } from "@/components/giver-profile-card";
 import { MessageGiverButton } from "@/components/message-giver-button";
 import { PageShell } from "@/components/page-shell";
+import { PickupMap } from "@/components/pickup-map";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
-import { findPickupSpot } from "@/lib/pickup-spots";
+import { findPickupSpot, findPickupSpotByLabel } from "@/lib/pickup-spots";
 
 export const metadata: Metadata = {
   title: "Item — Oper",
@@ -57,6 +58,7 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
 
   const givenCount = await countGivenItems(item.giverId);
   const isOwner = viewerId === item.giverId;
+  const mapSpot = findPickupSpotByLabel(item.pickupSpot);
 
   const backQuery = new URLSearchParams(
     Object.entries(raw).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
@@ -107,10 +109,26 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         ) : null}
       </div>
 
-      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
-        <IconMapPin className="h-8 w-8" />
-        <p className="text-sm font-medium">{item.pickupSpot}</p>
-      </div>
+      {mapSpot ? (
+        <div className="flex flex-col gap-2">
+          <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub h-44 overflow-hidden border">
+            <PickupMap label={mapSpot.label} lat={mapSpot.lat} lng={mapSpot.lng} />
+          </div>
+          <a
+            className="text-accent self-start text-sm font-semibold hover:underline"
+            href={`https://www.google.com/maps/dir/?api=1&destination=${mapSpot.lat},${mapSpot.lng}`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Get directions →
+          </a>
+        </div>
+      ) : (
+        <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
+          <IconMapPin className="h-8 w-8" />
+          <p className="text-sm font-medium">{item.pickupSpot}</p>
+        </div>
+      )}
 
       {!hasExplicitFrom ? (
         <p className="text-muted text-xs">
