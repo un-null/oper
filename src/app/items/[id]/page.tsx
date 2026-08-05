@@ -116,11 +116,11 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
           </div>
           <a
             className="text-accent self-start text-sm font-semibold hover:underline"
-            href={`https://www.google.com/maps/dir/?api=1&destination=${mapSpot.lat},${mapSpot.lng}`}
+            href={`https://www.google.com/maps/search/?api=1&query=${mapSpot.lat},${mapSpot.lng}`}
             rel="noopener noreferrer"
             target="_blank"
           >
-            Get directions →
+            Open in Google Maps →
           </a>
         </div>
       ) : (
