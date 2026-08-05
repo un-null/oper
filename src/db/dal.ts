@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { conversations, items, messages, pickups, profiles, ratings } from "@/db/schema";
+import { conversations, itemPhotos, items, messages, pickups, profiles, ratings } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
@@ -41,13 +41,29 @@ export async function createItem(
     condition: (typeof items.$inferInsert)["condition"];
     pickupSpot: string;
     location: { x: number; y: number };
+    photoUrls?: string[];
   },
 ) {
-  const [item] = await db
-    .insert(items)
-    .values({ ...values, giverId: userId })
-    .returning();
-  return item;
+  const { photoUrls, ...itemValues } = values;
+
+  return db.transaction(async (tx) => {
+    const [item] = await tx
+      .insert(items)
+      .values({ ...itemValues, giverId: userId })
+      .returning();
+
+    if (photoUrls?.length) {
+      await tx.insert(itemPhotos).values(
+        photoUrls.map((url, sortOrder) => ({
+          itemId: item.id,
+          url,
+          sortOrder,
+        })),
+      );
+    }
+
+    return item;
+  });
 }
 
 export function updateMyItem(
@@ -72,6 +88,12 @@ export async function findNearbyItems(params: {
 }): Promise<NearbyItem[]> {
   const point = sql`ST_SetSRID(ST_MakePoint(${params.lng}, ${params.lat}), 4326)::geography`;
   const distance = sql<number>`(round((ST_Distance(${items.location}::geography, ${point}) / 100)::numeric) / 10)::float8`;
+  const photoUrl = sql<string | null>`(
+    select url from item_photos
+    where item_id = ${items.id}
+    order by sort_order
+    limit 1
+  )`;
 
   return db
     .select({
@@ -83,7 +105,7 @@ export async function findNearbyItems(params: {
       condition: items.condition,
       status: items.status,
       pickupSpot: items.pickupSpot,
-      photoUrl: items.photoUrl,
+      photoUrl,
       createdAt: items.createdAt,
       updatedAt: items.updatedAt,
       distanceKm: distance,
@@ -101,6 +123,7 @@ export async function findNearbyItems(params: {
 
 export type ItemDetail = Omit<typeof items.$inferSelect, "location"> & {
   distanceKm: number;
+  photoUrls: string[];
   giver: {
     id: string;
     displayName: string;
@@ -119,6 +142,16 @@ export async function findItemDetail(
   const point = sql`ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography`;
   const distance = sql<number>`(round((ST_Distance(${items.location}::geography, ${point}) / 100)::numeric) / 10)::float8`;
   const avgRating = sql<number | null>`${profiles.avgRating}::float8`;
+  const photoUrl = sql<string | null>`(
+    select url from item_photos
+    where item_id = ${items.id}
+    order by sort_order
+    limit 1
+  )`;
+  const photoUrls = sql<string[]>`coalesce((
+    select array_agg(url order by sort_order) from item_photos
+    where item_id = ${items.id}
+  ), '{}')`;
 
   const [row] = await db
     .select({
@@ -130,7 +163,8 @@ export async function findItemDetail(
       condition: items.condition,
       status: items.status,
       pickupSpot: items.pickupSpot,
-      photoUrl: items.photoUrl,
+      photoUrl,
+      photoUrls,
       createdAt: items.createdAt,
       updatedAt: items.updatedAt,
       distanceKm: distance,
