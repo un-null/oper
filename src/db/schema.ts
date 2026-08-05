@@ -4,6 +4,7 @@ import {
   check,
   geometry,
   index,
+  integer,
   numeric,
   pgEnum,
   pgTable,
@@ -81,6 +82,22 @@ export const items = pgTable(
     index("items_status_idx").on(table.status),
     index("items_giver_id_idx").on(table.giverId),
   ],
+);
+
+// item photos
+
+export const itemPhotos = pgTable(
+  "item_photos",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => items.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("item_photos_item_id_idx").on(table.itemId, table.sortOrder)],
 );
 
 // conversations

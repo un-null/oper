@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkItemPhotos,
   displayNameSchema,
+  MAX_PHOTO_BYTES,
+  MAX_PHOTOS,
   messageBodySchema,
   parsePickupTime,
   pickupProposalSchema,
   postItemSchema,
   ratingSchema,
 } from "@/lib/validation";
+
+function makeFile(bytes: number, type: string): File {
+  return new File([new Uint8Array(bytes)], "photo", { type });
+}
 
 describe("displayNameSchema", () => {
   it("rejects an empty or whitespace-only value after trimming", () => {
@@ -134,6 +141,40 @@ describe("ratingSchema", () => {
     if (whitespaceComment.success) {
       expect(whitespaceComment.data.comment).toBeUndefined();
     }
+  });
+});
+
+describe("checkItemPhotos", () => {
+  it("treats an absent input as no photo", () => {
+    expect(checkItemPhotos([])).toEqual({ kind: "none" });
+    expect(checkItemPhotos([""])).toEqual({ kind: "none" });
+  });
+
+  it("treats an empty (untouched) file input as no photo", () => {
+    expect(checkItemPhotos([makeFile(0, "application/octet-stream")])).toEqual({ kind: "none" });
+  });
+
+  it("accepts jpeg, png, and webp", () => {
+    for (const type of ["image/jpeg", "image/png", "image/webp"]) {
+      const result = checkItemPhotos([makeFile(100, type)]);
+      expect(result.kind).toBe("ok");
+    }
+  });
+
+  it("rejects an unsupported type, including svg", () => {
+    expect(checkItemPhotos([makeFile(100, "image/gif")]).kind).toBe("error");
+    expect(checkItemPhotos([makeFile(100, "image/svg+xml")]).kind).toBe("error");
+  });
+
+  it("accepts exactly MAX_PHOTO_BYTES and rejects one byte over", () => {
+    expect(checkItemPhotos([makeFile(MAX_PHOTO_BYTES, "image/jpeg")]).kind).toBe("ok");
+    expect(checkItemPhotos([makeFile(MAX_PHOTO_BYTES + 1, "image/jpeg")]).kind).toBe("error");
+  });
+
+  it("accepts exactly MAX_PHOTOS files and rejects one more", () => {
+    const files = Array.from({ length: MAX_PHOTOS }, () => makeFile(100, "image/jpeg"));
+    expect(checkItemPhotos(files).kind).toBe("ok");
+    expect(checkItemPhotos([...files, makeFile(100, "image/jpeg")]).kind).toBe("error");
   });
 });
 
