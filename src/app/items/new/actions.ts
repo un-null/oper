@@ -42,7 +42,6 @@ export async function postItem(
     category: parsed.data.category,
     condition: parsed.data.condition,
     pickupSpot: spot.label,
-    // x = longitude, y = latitude (PostGIS point order).
     location: { x: spot.lng, y: spot.lat },
   });
 

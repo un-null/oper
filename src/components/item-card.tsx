@@ -38,7 +38,7 @@ export function ItemCard({ distanceKm, href, item }: ItemCardProps) {
           {distanceKm !== undefined ? (
             <span className="flex items-center gap-1.5">
               <IconMapPin className="h-4 w-4 shrink-0" />
-              {distanceKm} km away
+              {distanceKm === 0 ? "At this spot" : `${distanceKm} km away`}
             </span>
           ) : (
             <span className="flex items-center gap-1.5">
