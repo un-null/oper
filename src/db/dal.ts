@@ -3,7 +3,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { conversations, itemPhotos, items, messages, pickups, profiles, ratings } from "@/db/schema";
+import {
+  conversations,
+  itemPhotos,
+  items,
+  messages,
+  pickups,
+  profiles,
+  ratings,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
