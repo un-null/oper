@@ -94,7 +94,7 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
           {hasExplicitFrom ? (
             <span className="flex items-center gap-1.5">
               <IconMapPin className="h-4 w-4" />
-              {item.distanceKm} km away
+              {item.distanceKm === 0 ? "At this spot" : `${item.distanceKm} km away`}
             </span>
           ) : null}
           <span className="flex items-center gap-1.5">

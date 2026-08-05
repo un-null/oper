@@ -18,8 +18,8 @@ describe("parseBrowseParams", () => {
   });
 
   it("resolves a valid from id to its matching spot", () => {
-    expect(parseBrowseParams({ from: "faculty" }).from).toEqual(
-      PICKUP_SPOTS.find((spot) => spot.id === "faculty"),
+    expect(parseBrowseParams({ from: "ft-tower" }).from).toEqual(
+      PICKUP_SPOTS.find((spot) => spot.id === "ft-tower"),
     );
   });
 

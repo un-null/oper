@@ -55,7 +55,7 @@ test("a posted item can be found on the browse list and viewed on its detail pag
   await page.getByRole("button", { name: "Choose a category" }).click();
   await page.getByRole("option", { name: "Furniture" }).click();
   await page.getByText("Good", { exact: true }).click();
-  await page.getByText("Dorm lobby — Block C", { exact: true }).click();
+  await page.getByText("UGM Central Library", { exact: true }).click();
   await page.getByRole("button", { name: "Post for free" }).click();
 
   await expect(page).toHaveURL("/");
@@ -99,7 +99,7 @@ test("a receiver can message a giver and the giver sees the reply without reload
   await giverPage.getByRole("button", { name: "Choose a category" }).click();
   await giverPage.getByRole("option", { name: "Electronics" }).click();
   await giverPage.getByText("Good", { exact: true }).click();
-  await giverPage.getByText("Dorm lobby — Block C", { exact: true }).click();
+  await giverPage.getByText("UGM Central Library", { exact: true }).click();
   await giverPage.getByRole("button", { name: "Post for free" }).click();
   await expect(giverPage).toHaveURL("/");
 
@@ -138,7 +138,7 @@ test("a receiver can message a giver and the giver sees the reply without reload
   await receiverPage.getByRole("spinbutton", { name: /^hour/ }).click();
   await receiverPage.keyboard.type("0230PM");
 
-  await receiverPage.getByLabel("Pickup spot").fill("Dorm lobby — Block C");
+  await receiverPage.getByLabel("Pickup spot").fill("UGM Central Library");
   await receiverPage.getByRole("button", { name: "Propose pickup" }).click();
   await expect(receiverPage.getByText(/Waiting for .* to confirm/)).toBeVisible();
 

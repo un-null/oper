@@ -143,7 +143,7 @@ describe("postItemSchema", () => {
     description: undefined,
     category: "furniture" as const,
     condition: "good" as const,
-    pickupSpotId: "dorm-c",
+    pickupSpotId: "library",
   };
 
   it("accepts a minimal valid item", () => {
