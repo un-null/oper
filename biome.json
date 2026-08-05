@@ -18,7 +18,9 @@
       "!!**/node_modules",
       "!!**/.next",
       "!!**/drizzle",
-      "!!src/temp"
+      "!!src/temp",
+      "!!public",
+      "!!src/app/icon.svg"
     ]
   },
   "formatter": {

@@ -50,7 +50,7 @@ export function ItemFilters() {
           <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
             Near
           </Label>
-          <Select.Trigger>
+          <Select.Trigger className="items-center gap-2">
             <IconMapPin className="text-muted h-4 w-4 shrink-0" />
             <Select.Value />
             <Select.Indicator />

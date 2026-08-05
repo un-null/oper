@@ -1,4 +1,5 @@
 import { linkVariants } from "@heroui/styles";
+import Image from "next/image";
 import Link from "next/link";
 
 import { SignOutButton } from "@/components/sign-out-button";
@@ -18,8 +19,15 @@ type SiteHeaderProps = {
 export function SiteHeader({ session }: SiteHeaderProps) {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-6">
-      <Link className="font-display text-accent text-2xl font-black tracking-tight" href="/">
-        Oper
+      <Link href="/">
+        <Image
+          alt="Oper"
+          className="h-14 w-auto"
+          height={250}
+          priority
+          src="/logo-text.svg"
+          width={500}
+        />
       </Link>
 
       {session ? (
