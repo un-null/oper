@@ -1,11 +1,12 @@
 import { IconCalendar, IconMapPin, IconPhoto } from "@tabler/icons-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import type { items } from "@/db/schema";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 
 type ItemCardProps = {
-  item: Omit<typeof items.$inferSelect, "location">;
+  item: Omit<typeof items.$inferSelect, "location"> & { photoUrl?: string | null };
   distanceKm?: number;
   href?: string;
 };
@@ -23,8 +24,18 @@ const interactive =
 export function ItemCard({ distanceKm, href, item }: ItemCardProps) {
   const body = (
     <>
-      <div className="bg-accent-soft text-accent-soft-foreground rounded-t-stub flex h-36 items-center justify-center">
-        <IconPhoto className="h-12 w-12" />
+      <div className="bg-accent-soft text-accent-soft-foreground rounded-t-stub relative flex h-36 items-center justify-center overflow-hidden">
+        {item.photoUrl ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            src={item.photoUrl}
+          />
+        ) : (
+          <IconPhoto className="h-12 w-12" />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">

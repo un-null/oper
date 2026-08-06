@@ -17,6 +17,7 @@ import {
 import { useActionState } from "react";
 
 import { type PostItemState, postItem } from "@/app/items/new/actions";
+import { PhotoField } from "@/components/photo-field";
 import { itemCategoryEnum, itemConditionEnum } from "@/db/schema";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 import { PICKUP_SPOTS } from "@/lib/pickup-spots";
@@ -42,6 +43,8 @@ export function PostItemForm() {
         />
         <FieldError />
       </TextField>
+
+      <PhotoField isDisabled={isPending} />
 
       <Select isDisabled={isPending} isRequired name="category" placeholder="Choose a category">
         <Label>Category</Label>
