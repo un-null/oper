@@ -1,5 +1,6 @@
-import { Typography } from "@heroui/react";
+import { Skeleton, Typography } from "@heroui/react";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { ItemCard } from "@/components/item-card";
 import { ItemFilters } from "@/components/item-filters";
@@ -40,7 +41,9 @@ export default async function Home({ searchParams }: HomeProps) {
         </Typography.Paragraph>
       </div>
 
-      <ItemFilters />
+      <Suspense fallback={<ItemFiltersFallback />}>
+        <ItemFilters />
+      </Suspense>
 
       {nearbyItems.length === 0 ? (
         <div className="border-border rounded-lg border border-dashed px-6 py-16 text-center">
@@ -61,5 +64,17 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       )}
     </PageShell>
+  );
+}
+
+function ItemFiltersFallback() {
+  return (
+    <div aria-hidden className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <Skeleton className="h-14 w-full sm:max-w-xs" />
+        <Skeleton className="h-14 w-40" />
+      </div>
+      <Skeleton className="h-8 w-full" />
+    </div>
   );
 }
