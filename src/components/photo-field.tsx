@@ -2,7 +2,7 @@
 
 import { Button, Label } from "@heroui/react";
 import { IconPhoto, IconX } from "@tabler/icons-react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { MAX_PHOTOS } from "@/lib/validation";
 
@@ -16,6 +16,15 @@ export function PhotoField({ isDisabled }: PhotoFieldProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
+
+  useEffect(() => {
+    return () => {
+      for (const photo of photosRef.current) URL.revokeObjectURL(photo.previewUrl);
+    };
+  }, []);
 
   function syncInputFiles(next: Photo[]) {
     const input = inputRef.current;
