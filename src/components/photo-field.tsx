@@ -18,7 +18,10 @@ export function PhotoField({ isDisabled }: PhotoFieldProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
 
   const photosRef = useRef(photos);
-  photosRef.current = photos;
+
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
 
   useEffect(() => {
     return () => {
