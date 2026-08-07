@@ -37,6 +37,43 @@ export function parsePickupTime(date: string, time: string): Date | null {
   return parsed;
 }
 
+export const MAX_PHOTOS = 5;
+export const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
+
+export const PHOTO_EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+export type PhotoCheck =
+  | { kind: "none" }
+  | { kind: "ok"; files: File[] }
+  | { kind: "error"; message: string };
+
+export function checkItemPhotos(values: FormDataEntryValue[]): PhotoCheck {
+  const files = values.filter((value): value is File => value instanceof File && value.size > 0);
+
+  if (files.length === 0) {
+    return { kind: "none" };
+  }
+
+  if (files.length > MAX_PHOTOS) {
+    return { kind: "error", message: `Upload up to ${MAX_PHOTOS} photos.` };
+  }
+
+  for (const file of files) {
+    if (!PHOTO_EXTENSION_BY_TYPE[file.type]) {
+      return { kind: "error", message: "Upload JPEG, PNG, or WebP images." };
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      return { kind: "error", message: "Keep each photo under 4 MB." };
+    }
+  }
+
+  return { kind: "ok", files };
+}
+
 export const postItemSchema = z.object({
   title: z
     .string()

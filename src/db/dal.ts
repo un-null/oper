@@ -3,7 +3,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
-import { conversations, items, messages, pickups, profiles, ratings } from "@/db/schema";
+import {
+  conversations,
+  itemPhotos,
+  items,
+  messages,
+  pickups,
+  profiles,
+  ratings,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
@@ -28,8 +36,35 @@ export async function getViewerId(): Promise<string | null> {
 
 // items
 
+const ITEM_ID_REF = sql.raw('"items"."id"');
+
+const itemThumbnailUrl = sql<string | null>`(
+  select url from item_photos
+  where item_photos.item_id = ${ITEM_ID_REF}
+  order by item_photos.sort_order
+  limit 1
+)`;
+
+const itemCardColumns = {
+  id: items.id,
+  giverId: items.giverId,
+  title: items.title,
+  description: items.description,
+  category: items.category,
+  condition: items.condition,
+  status: items.status,
+  pickupSpot: items.pickupSpot,
+  photoUrl: itemThumbnailUrl,
+  createdAt: items.createdAt,
+  updatedAt: items.updatedAt,
+};
+
 export function getMyItems(userId: string) {
-  return db.select().from(items).where(eq(items.giverId, userId)).orderBy(desc(items.createdAt));
+  return db
+    .select(itemCardColumns)
+    .from(items)
+    .where(eq(items.giverId, userId))
+    .orderBy(desc(items.createdAt));
 }
 
 export async function createItem(
@@ -41,13 +76,29 @@ export async function createItem(
     condition: (typeof items.$inferInsert)["condition"];
     pickupSpot: string;
     location: { x: number; y: number };
+    photoUrls?: string[];
   },
 ) {
-  const [item] = await db
-    .insert(items)
-    .values({ ...values, giverId: userId })
-    .returning();
-  return item;
+  const { photoUrls, ...itemValues } = values;
+
+  return db.transaction(async (tx) => {
+    const [item] = await tx
+      .insert(items)
+      .values({ ...itemValues, giverId: userId })
+      .returning();
+
+    if (photoUrls?.length) {
+      await tx.insert(itemPhotos).values(
+        photoUrls.map((url, sortOrder) => ({
+          itemId: item.id,
+          url,
+          sortOrder,
+        })),
+      );
+    }
+
+    return item;
+  });
 }
 
 export function updateMyItem(
@@ -62,7 +113,11 @@ export function updateMyItem(
     .returning();
 }
 
-type NearbyItem = Omit<typeof items.$inferSelect, "location"> & { distanceKm: number };
+export type ItemCard = Omit<typeof items.$inferSelect, "location" | "photoUrl"> & {
+  photoUrl: string | null;
+};
+
+export type NearbyItem = ItemCard & { distanceKm: number };
 
 export async function findNearbyItems(params: {
   lng: number;
@@ -74,20 +129,7 @@ export async function findNearbyItems(params: {
   const distance = sql<number>`(round((ST_Distance(${items.location}::geography, ${point}) / 100)::numeric) / 10)::float8`;
 
   return db
-    .select({
-      id: items.id,
-      giverId: items.giverId,
-      title: items.title,
-      description: items.description,
-      category: items.category,
-      condition: items.condition,
-      status: items.status,
-      pickupSpot: items.pickupSpot,
-      photoUrl: items.photoUrl,
-      createdAt: items.createdAt,
-      updatedAt: items.updatedAt,
-      distanceKm: distance,
-    })
+    .select({ ...itemCardColumns, distanceKm: distance })
     .from(items)
     .where(
       and(
@@ -99,8 +141,9 @@ export async function findNearbyItems(params: {
     .orderBy(sql`${items.location} <-> ${point}`, desc(items.createdAt));
 }
 
-export type ItemDetail = Omit<typeof items.$inferSelect, "location"> & {
+export type ItemDetail = ItemCard & {
   distanceKm: number;
+  photoUrls: string[];
   giver: {
     id: string;
     displayName: string;
@@ -119,20 +162,15 @@ export async function findItemDetail(
   const point = sql`ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography`;
   const distance = sql<number>`(round((ST_Distance(${items.location}::geography, ${point}) / 100)::numeric) / 10)::float8`;
   const avgRating = sql<number | null>`${profiles.avgRating}::float8`;
+  const photoUrls = sql<string[]>`coalesce((
+    select array_agg(url order by item_photos.sort_order) from item_photos
+    where item_photos.item_id = ${ITEM_ID_REF}
+  ), '{}')`;
 
   const [row] = await db
     .select({
-      id: items.id,
-      giverId: items.giverId,
-      title: items.title,
-      description: items.description,
-      category: items.category,
-      condition: items.condition,
-      status: items.status,
-      pickupSpot: items.pickupSpot,
-      photoUrl: items.photoUrl,
-      createdAt: items.createdAt,
-      updatedAt: items.updatedAt,
+      ...itemCardColumns,
+      photoUrls,
       distanceKm: distance,
       giver: {
         id: profiles.id,

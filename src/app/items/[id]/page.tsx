@@ -1,11 +1,5 @@
 import { buttonVariants, Chip, Typography } from "@heroui/react";
-import {
-  IconArrowLeft,
-  IconCalendar,
-  IconInfoCircle,
-  IconMapPin,
-  IconPhoto,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconCalendar, IconInfoCircle, IconMapPin } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,6 +8,7 @@ import { z } from "zod";
 import { GiverProfileCard } from "@/components/giver-profile-card";
 import { MessageGiverButton } from "@/components/message-giver-button";
 import { PageShell } from "@/components/page-shell";
+import { PhotoCarousel } from "@/components/photo-carousel";
 import { PickupMap } from "@/components/pickup-map";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
@@ -75,15 +70,16 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         <IconArrowLeft className="h-4 w-4" />
       </Link>
 
-      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub relative flex h-72 items-center justify-center border sm:h-96">
-        <IconPhoto className="h-20 w-20" />
+      <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Chip color="warning">FREE</Chip>
-          <Chip color="default" variant="soft">
+          <Chip color="danger" size="lg" variant="soft">
+            FREE
+          </Chip>
+          <Chip color="accent" size="lg" variant="soft">
             {CONDITION_LABELS[item.condition]}
           </Chip>
         </div>
-      </div>
+      </PhotoCarousel>
 
       <div className="flex flex-col gap-2">
         <p className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">

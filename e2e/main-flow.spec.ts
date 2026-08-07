@@ -6,12 +6,37 @@ import { sql } from "./helpers/db";
 const uniqueEmail = () =>
   `oper-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
 
+async function deleteE2EItemPhotos() {
+  const rows = await sql<{ url: string }[]>`
+    SELECT item_photos.url FROM item_photos
+    JOIN items ON items.id = item_photos.item_id
+    WHERE items.title LIKE 'E2E %'
+  `;
+
+  const baseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey || rows.length === 0) return;
+
+  await Promise.all(
+    rows.map(({ url }) => {
+      const path = url.split("/storage/v1/object/public/item_photos/")[1];
+      if (!path) return Promise.resolve();
+      return fetch(`${baseUrl}/storage/v1/object/item_photos/${path}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey },
+      });
+    }),
+  );
+}
+
 test.beforeAll(async () => {
+  await deleteE2EItemPhotos();
   await sql`DELETE FROM items WHERE title LIKE 'E2E %'`;
   await sql`DELETE FROM "user" WHERE email LIKE 'oper-e2e-%'`;
 });
 
 test.afterAll(async () => {
+  await deleteE2EItemPhotos();
   await sql`DELETE FROM items WHERE title LIKE 'E2E %'`;
   await sql`DELETE FROM "user" WHERE email LIKE 'oper-e2e-%'`;
   await sql.end();
@@ -52,6 +77,7 @@ test("a posted item can be found on the browse list and viewed on its detail pag
 
   await page.goto("/items/new");
   await page.getByLabel("Title").fill(title);
+  await page.getByLabel("Photos").setInputFiles("e2e/fixtures/item-photo.jpg");
   await page.getByRole("button", { name: "Choose a category" }).click();
   await page.getByRole("option", { name: "Furniture" }).click();
   await page.getByText("Good", { exact: true }).click();
@@ -66,6 +92,10 @@ test("a posted item can be found on the browse list and viewed on its detail pag
   await expect(heading).toBeVisible();
   const detailMain = page.getByRole("main");
   await expect(detailMain.getByText(/km away/).first()).toBeVisible();
+  await expect(detailMain.getByRole("img", { name: title })).toHaveAttribute(
+    "src",
+    /\/storage\/v1\/object\/public\/item_photos\//,
+  );
 });
 
 test("browse filters are reflected in the URL and carried into the detail link", async ({
