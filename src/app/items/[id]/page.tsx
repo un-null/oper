@@ -72,8 +72,10 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
 
       <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Chip color="warning">FREE</Chip>
-          <Chip color="default" variant="soft">
+          <Chip color="danger" size="lg" variant="soft">
+            FREE
+          </Chip>
+          <Chip color="accent" size="lg" variant="soft">
             {CONDITION_LABELS[item.condition]}
           </Chip>
         </div>
