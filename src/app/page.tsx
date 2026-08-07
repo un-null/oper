@@ -13,20 +13,22 @@ type HomeProps = {
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const viewerId = await getViewerId();
-  if (viewerId && !(await getMyProfile(viewerId))) {
-    redirect("/onboarding");
-  }
-
   const raw = await searchParams;
   const params = parseBrowseParams(raw);
 
-  const nearbyItems = await findNearbyItems({
-    lng: params.from.lng,
-    lat: params.from.lat,
-    radiusM: params.radiusKm * 1000,
-    category: params.category,
-  });
+  const [viewerId, nearbyItems] = await Promise.all([
+    getViewerId(),
+    findNearbyItems({
+      lng: params.from.lng,
+      lat: params.from.lat,
+      radiusM: params.radiusKm * 1000,
+      category: params.category,
+    }),
+  ]);
+
+  if (viewerId && !(await getMyProfile(viewerId))) {
+    redirect("/onboarding");
+  }
 
   const query = new URLSearchParams(
     Object.entries(raw).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
@@ -53,12 +55,13 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {nearbyItems.map((item) => (
+          {nearbyItems.map((item, index) => (
             <ItemCard
               distanceKm={item.distanceKm}
               href={query ? `/items/${item.id}?${query}` : `/items/${item.id}`}
               item={item}
               key={item.id}
+              priority={index === 0}
             />
           ))}
         </div>
