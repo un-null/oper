@@ -160,17 +160,22 @@ export function SignInForm() {
   async function sendOtp() {
     setIsPending(true);
     setError(null);
-    const { error: sendError } = await authClient.emailOtp.sendVerificationOtp({
-      email,
-      type: "sign-in",
-    });
-    setIsPending(false);
-    if (sendError) {
-      setError(mapAuthError(sendError.code));
-      return;
+    try {
+      const { error: sendError } = await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: "sign-in",
+      });
+      if (sendError) {
+        setError(mapAuthError(sendError.code));
+        return;
+      }
+      setStep("otp");
+      setCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
+    } catch {
+      setError(mapAuthError(undefined));
+    } finally {
+      setIsPending(false);
     }
-    setStep("otp");
-    setCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -182,14 +187,19 @@ export function SignInForm() {
     e.preventDefault();
     setIsPending(true);
     setError(null);
-    const { error: verifyError } = await authClient.signIn.emailOtp({ email, otp });
-    setIsPending(false);
-    if (verifyError) {
-      setError(mapAuthError(verifyError.code));
-      return;
+    try {
+      const { error: verifyError } = await authClient.signIn.emailOtp({ email, otp });
+      if (verifyError) {
+        setError(mapAuthError(verifyError.code));
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError(mapAuthError(undefined));
+    } finally {
+      setIsPending(false);
     }
-    router.push("/");
-    router.refresh();
   }
 
   function handleChangeEmail() {
