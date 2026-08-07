@@ -149,7 +149,13 @@ export function SignInForm() {
 
   useEffect(() => {
     if (!cooldownUntil) return;
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    const id = setInterval(() => {
+      if (Date.now() >= cooldownUntil) {
+        clearInterval(id);
+        return;
+      }
+      setTick((t) => t + 1);
+    }, 1000);
     return () => clearInterval(id);
   }, [cooldownUntil]);
 
