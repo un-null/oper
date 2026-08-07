@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { OnboardingForm } from "@/components/onboarding-form";
 import { PageShell } from "@/components/page-shell";
 import { getMyProfile } from "@/db/dal";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Set up your profile — Oper",
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OnboardingPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     redirect("/sign-in");
   }
