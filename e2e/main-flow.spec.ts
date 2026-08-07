@@ -92,10 +92,10 @@ test("a posted item can be found on the browse list and viewed on its detail pag
   await expect(heading).toBeVisible();
   const detailMain = page.getByRole("main");
   await expect(detailMain.getByText(/km away/).first()).toBeVisible();
-  await expect(detailMain.getByRole("img", { name: title })).toHaveAttribute(
-    "src",
-    /\/storage\/v1\/object\/public\/item_photos\//,
-  );
+  const photoSrc = await detailMain.getByRole("img", { name: title }).getAttribute("src");
+  expect(photoSrc).toBeTruthy();
+  const decodedPhotoSrc = decodeURIComponent(photoSrc ?? "");
+  expect(decodedPhotoSrc).toMatch(/\/storage\/v1\/object\/public\/item_photos\//);
 });
 
 test("browse filters are reflected in the URL and carried into the detail link", async ({
