@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { itemCategoryEnum, itemConditionEnum } from "@/db/schema";
+import { TIME_ZONE_UTC_OFFSET } from "@/lib/date-format";
 import { PICKUP_SPOTS } from "@/lib/pickup-spots";
 
 export const displayNameSchema = z
@@ -26,7 +27,7 @@ export const pickupProposalSchema = z.object({
 });
 
 export function parsePickupTime(date: string, time: string): Date | null {
-  const isoCandidate = `${date}T${time.length === 5 ? `${time}:00` : time}`;
+  const isoCandidate = `${date}T${time.length === 5 ? `${time}:00` : time}${TIME_ZONE_UTC_OFFSET}`;
   const parsed = new Date(isoCandidate);
   if (Number.isNaN(parsed.getTime())) {
     return null;

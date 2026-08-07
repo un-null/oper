@@ -1,6 +1,8 @@
 const TIME_ZONE = "Asia/Jakarta";
 const LOCALE = "en-GB";
 
+export const TIME_ZONE_UTC_OFFSET = "+07:00";
+
 export const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
   month: "short",
