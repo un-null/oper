@@ -12,6 +12,7 @@ import { PhotoCarousel } from "@/components/photo-carousel";
 import { PickupMap } from "@/components/pickup-map";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
+import { dateFormatter } from "@/lib/date-format";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 import { findPickupSpot, findPickupSpotByLabel } from "@/lib/pickup-spots";
 
@@ -19,12 +20,6 @@ export const metadata: Metadata = {
   title: "Item — Oper",
   description: "Item details, pickup spot, and giver profile.",
 };
-
-const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
 
 type ItemDetailPageProps = {
   params: Promise<{ id: string }>;

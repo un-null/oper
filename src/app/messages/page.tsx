@@ -4,19 +4,13 @@ import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
 import { getMyConversations, requireProfile } from "@/db/dal";
+import { dayTimeFormatter as timeFormatter } from "@/lib/date-format";
 import { initialsFor } from "@/lib/initials";
 
 export const metadata: Metadata = {
   title: "Messages — Oper",
   description: "Conversations with givers and receivers.",
 };
-
-const timeFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default async function MessagesPage() {
   const profile = await requireProfile();

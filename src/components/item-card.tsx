@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { ItemCard as ItemCardData } from "@/db/dal";
+import { dateFormatter } from "@/lib/date-format";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 
 type ItemCardProps = {
@@ -10,12 +11,6 @@ type ItemCardProps = {
   distanceKm?: number;
   href?: string;
 };
-
-const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
 
 const shell = "group border-border bg-surface relative flex flex-col rounded-stub border";
 const interactive =

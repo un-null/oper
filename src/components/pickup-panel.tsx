@@ -27,6 +27,7 @@ import {
 } from "@/app/messages/actions";
 import { RatingForm } from "@/components/rating-form";
 import type { ActivePickup, RatablePickup } from "@/db/dal";
+import { dateTimeFormatter } from "@/lib/date-format";
 
 type PickupPanelProps = {
   conversationId: string;
@@ -39,11 +40,6 @@ type PickupPanelProps = {
 };
 
 const initialState: PickupState = { error: null };
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 export function PickupPanel({
   conversationId,
