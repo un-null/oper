@@ -1,5 +1,4 @@
 import { and, asc, desc, eq, getTableColumns, or, sql } from "drizzle-orm";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/db";
@@ -12,7 +11,7 @@ import {
   profiles,
   ratings,
 } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
   constructor(message = "Not authenticated") {
@@ -22,7 +21,7 @@ export class UnauthorizedError extends Error {
 }
 
 export async function requireUserId(): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new UnauthorizedError();
   }
@@ -30,7 +29,7 @@ export async function requireUserId(): Promise<string> {
 }
 
 export async function getViewerId(): Promise<string | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   return session?.user?.id ?? null;
 }
 
@@ -221,7 +220,7 @@ export function updateMyProfile(userId: string, values: { displayName: string })
 }
 
 export async function requireProfile() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     redirect("/sign-in");
   }
