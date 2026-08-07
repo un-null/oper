@@ -1,13 +1,6 @@
 import { buttonVariants, Chip, Typography } from "@heroui/react";
-import {
-  IconArrowLeft,
-  IconCalendar,
-  IconInfoCircle,
-  IconMapPin,
-  IconPhoto,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconCalendar, IconInfoCircle, IconMapPin } from "@tabler/icons-react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -15,6 +8,7 @@ import { z } from "zod";
 import { GiverProfileCard } from "@/components/giver-profile-card";
 import { MessageGiverButton } from "@/components/message-giver-button";
 import { PageShell } from "@/components/page-shell";
+import { PhotoCarousel } from "@/components/photo-carousel";
 import { PickupMap } from "@/components/pickup-map";
 import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
@@ -76,39 +70,14 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         <IconArrowLeft className="h-4 w-4" />
       </Link>
 
-      <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub relative flex h-72 items-center justify-center overflow-hidden border sm:h-96">
-        {item.photoUrls[0] ? (
-          <Image
-            alt={item.title}
-            className="object-cover"
-            fill
-            priority
-            sizes="(min-width: 640px) 672px, 100vw"
-            src={item.photoUrls[0]}
-          />
-        ) : (
-          <IconPhoto className="h-20 w-20" />
-        )}
+      <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <Chip color="warning">FREE</Chip>
           <Chip color="default" variant="soft">
             {CONDITION_LABELS[item.condition]}
           </Chip>
         </div>
-      </div>
-
-      {item.photoUrls.length > 1 ? (
-        <div className="flex gap-3 overflow-x-auto">
-          {item.photoUrls.slice(1).map((url) => (
-            <div
-              className="border-border rounded-stub relative h-20 w-20 shrink-0 overflow-hidden border"
-              key={url}
-            >
-              <Image alt="" className="object-cover" fill sizes="80px" src={url} />
-            </div>
-          ))}
-        </div>
-      ) : null}
+      </PhotoCarousel>
 
       <div className="flex flex-col gap-2">
         <p className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">
