@@ -32,7 +32,9 @@ export default async function SettingsPage() {
             <Avatar>
               <Avatar.Fallback>{initialsFor(profile.displayName)}</Avatar.Fallback>
             </Avatar>
-            <Card.Title render={(props) => <h2 {...props} />}>Profile</Card.Title>
+            <Typography.Heading className="text-sm leading-6 font-medium" level={2}>
+              Profile
+            </Typography.Heading>
           </div>
           <Card.Description>Update how neighbors see you.</Card.Description>
         </Card.Header>
@@ -43,7 +45,9 @@ export default async function SettingsPage() {
 
       <Card>
         <Card.Header>
-          <Card.Title render={(props) => <h2 {...props} />}>Appearance</Card.Title>
+          <Typography.Heading className="text-sm leading-6 font-medium" level={2}>
+            Appearance
+          </Typography.Heading>
           <Card.Description>Choose how Oper looks on this device.</Card.Description>
         </Card.Header>
         <Card.Content>
@@ -53,7 +57,9 @@ export default async function SettingsPage() {
 
       <Card>
         <Card.Header>
-          <Card.Title render={(props) => <h2 {...props} />}>Account</Card.Title>
+          <Typography.Heading className="text-sm leading-6 font-medium" level={2}>
+            Account
+          </Typography.Heading>
         </Card.Header>
         <Card.Content>
           <div className="flex flex-wrap items-center gap-2">
