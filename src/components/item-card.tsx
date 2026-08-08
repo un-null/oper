@@ -1,3 +1,4 @@
+import { Skeleton } from "@heroui/react";
 import { IconCalendar, IconMapPin, IconPhoto } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -65,7 +66,8 @@ export function ItemCard({ distanceKm, href, item, priority }: ItemCardProps) {
 
       <div className="flex items-center justify-between gap-3 p-5 pt-4">
         <span className="text-muted text-sm">
-          Pickup only · <span className="font-display text-warning text-lg font-bold">FREE</span>
+          Pickup only ·{" "}
+          <span className="font-display text-warning-soft-foreground text-lg font-bold">FREE</span>
         </span>
         {href ? (
           <span className="text-accent shrink-0 text-sm font-semibold transition-transform group-hover:translate-x-0.5">
@@ -86,5 +88,23 @@ export function ItemCard({ distanceKm, href, item, priority }: ItemCardProps) {
     <Link className={`${shell} ${interactive}`} href={href}>
       {body}
     </Link>
+  );
+}
+
+export function ItemCardSkeleton() {
+  return (
+    <div aria-hidden className={shell}>
+      <Skeleton className="rounded-t-stub aspect-[4/3]" />
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-3 w-2/3" />
+      </div>
+      <div className="stub-perf mx-4" />
+      <div className="flex items-center justify-between gap-3 p-5 pt-4">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+    </div>
   );
 }
