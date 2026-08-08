@@ -57,7 +57,7 @@ export function MessageThread({
           return (
             <li className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`} key={message.id}>
               <div
-                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                className={`max-w-[80%] rounded-stub px-3 py-2 text-sm ${
                   isOwn ? "bg-accent text-accent-foreground" : "bg-accent-soft"
                 }`}
               >
