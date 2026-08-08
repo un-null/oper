@@ -144,9 +144,17 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
       <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-10 border-t px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
           {isOwner ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">This is your item</span>
-              <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">This is your item</span>
+                <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+              </div>
+              <Link
+                className={buttonVariants({ size: "sm", variant: "outline" })}
+                href={`/items/${item.id}/edit`}
+              >
+                Edit
+              </Link>
             </div>
           ) : viewerId === null ? (
             <Link className={buttonVariants()} href="/sign-in">

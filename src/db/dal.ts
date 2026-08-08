@@ -100,6 +100,15 @@ export async function createItem(
   });
 }
 
+export async function findMyItem(userId: string, itemId: string) {
+  const [row] = await db
+    .select(itemCardColumns)
+    .from(items)
+    .where(and(eq(items.id, itemId), eq(items.giverId, userId)))
+    .limit(1);
+  return row;
+}
+
 export function updateMyItem(
   userId: string,
   itemId: string,
