@@ -50,6 +50,9 @@ export function SiteHeader({ session }: SiteHeaderProps) {
               Give something away
             </Link>
             <span className="text-muted">Signed in as {session.user.email}</span>
+            <Link className={link.base()} href="/settings">
+              Settings
+            </Link>
             <SignOutButton />
             <ThemeToggle />
           </nav>

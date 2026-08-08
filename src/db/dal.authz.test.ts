@@ -11,6 +11,7 @@ import {
   findItemDetail,
   findMyConversation,
   findRatablePickup,
+  findRecentRatingsFor,
   getConversationMessages,
   getMyItems,
   proposePickup,
@@ -382,6 +383,34 @@ describe("DAL authorization boundary", () => {
       const [profile] = await db.select().from(profiles).where(eq(profiles.id, userB));
       expect(Number(profile.avgRating)).toBe(4);
       expect(profile.ratingCount).toBe(2);
+    });
+
+    it("findRecentRatingsFor only returns ratings that include a comment", async () => {
+      const thirdItem = await createTestItem(userB, "active");
+      const thirdStarted = await startConversation(userA, thirdItem);
+      let thirdConversation = "";
+      if ("id" in thirdStarted) {
+        thirdConversation = thirdStarted.id;
+      }
+      const thirdProposed = await proposePickup(userA, thirdConversation, {
+        time: new Date(Date.now() + 86_400_000),
+        spot: "Dorm lobby",
+      });
+      let thirdPickupId = "";
+      if ("id" in thirdProposed) {
+        thirdPickupId = thirdProposed.id;
+      }
+      await confirmPickup(userB, thirdPickupId);
+      await completePickup(userB, thirdPickupId);
+
+      await submitRating(userA, thirdPickupId, { stars: 4, comment: "Great neighbor!" });
+
+      const results = await findRecentRatingsFor(userB, 10);
+      expect(results.every((row) => row.comment.length > 0)).toBe(true);
+      expect(results.find((row) => row.comment === "Great neighbor!")).toBeTruthy();
+
+      const withoutComment = results.find((row) => row.comment === undefined);
+      expect(withoutComment).toBeUndefined();
     });
   });
 

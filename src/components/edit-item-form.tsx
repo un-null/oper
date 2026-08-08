@@ -45,13 +45,7 @@ export function EditItemForm({
 
   return (
     <Form action={formAction} className="flex flex-col gap-6">
-      <TextField
-        defaultValue={title}
-        isDisabled={isPending}
-        isRequired
-        maxLength={80}
-        name="title"
-      >
+      <TextField defaultValue={title} isDisabled={isPending} isRequired maxLength={80} name="title">
         <Label>Title</Label>
         <Input placeholder="e.g. 2-seater sofa, light wear" />
         <FieldError />
