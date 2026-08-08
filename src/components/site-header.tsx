@@ -1,9 +1,10 @@
+import { buttonVariants } from "@heroui/react";
 import { linkVariants } from "@heroui/styles";
+import { IconSettings } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { SignOutButton } from "@/components/sign-out-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggleButton } from "@/components/theme-toggle";
 import type { auth } from "@/lib/auth";
 
 const link = linkVariants();
@@ -32,10 +33,17 @@ export function SiteHeader({ session }: SiteHeaderProps) {
 
       {session ? (
         <>
-          <div className="flex items-center gap-2 sm:hidden">
-            <ThemeToggle />
-            <SignOutButton />
-          </div>
+          <Link
+            aria-label="Settings"
+            className={buttonVariants({
+              className: "sm:hidden",
+              isIconOnly: true,
+              variant: "ghost",
+            })}
+            href="/settings"
+          >
+            <IconSettings className="h-5 w-5" />
+          </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
             <Link className={link.base()} href="/">
               Home
@@ -49,17 +57,14 @@ export function SiteHeader({ session }: SiteHeaderProps) {
             <Link className={ctaPill} href="/items/new">
               Give something away
             </Link>
-            <span className="text-muted">Signed in as {session.user.email}</span>
             <Link className={link.base()} href="/settings">
               Settings
             </Link>
-            <SignOutButton />
-            <ThemeToggle />
           </nav>
         </>
       ) : (
         <div className="flex items-center gap-2 text-sm font-medium">
-          <ThemeToggle />
+          <ThemeToggleButton />
           <Link className={pill} href="/sign-in">
             Sign in
           </Link>
