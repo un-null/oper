@@ -10,7 +10,8 @@ import { MessageGiverButton } from "@/components/message-giver-button";
 import { PageShell } from "@/components/page-shell";
 import { PhotoCarousel } from "@/components/photo-carousel";
 import { PickupMap } from "@/components/pickup-map";
-import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
+import { RatingComments } from "@/components/rating-comments";
+import { countGivenItems, findItemDetail, findRecentRatingsFor, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
 import { dateFormatter } from "@/lib/date-format";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
@@ -46,7 +47,10 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
     notFound();
   }
 
-  const givenCount = await countGivenItems(item.giverId);
+  const [givenCount, recentRatings] = await Promise.all([
+    countGivenItems(item.giverId),
+    findRecentRatingsFor(item.giverId, 3),
+  ]);
   const isOwner = viewerId === item.giverId;
   const mapSpot = findPickupSpotByLabel(item.pickupSpot);
 
@@ -129,6 +133,8 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
       ) : null}
 
       <GiverProfileCard givenCount={givenCount} giver={item.giver} />
+
+      <RatingComments ratings={recentRatings} />
 
       <p className="text-muted flex items-start gap-1.5 text-xs">
         <IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0" />

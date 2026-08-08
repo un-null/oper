@@ -652,6 +652,33 @@ export async function findRatablePickup(
   return row;
 }
 
+export type RecentRating = {
+  id: string;
+  stars: number;
+  comment: string;
+  createdAt: Date;
+  raterDisplayName: string;
+};
+
+export async function findRecentRatingsFor(
+  rateeId: string,
+  limit: number,
+): Promise<RecentRating[]> {
+  return db
+    .select({
+      id: ratings.id,
+      stars: ratings.stars,
+      comment: sql<string>`${ratings.comment}`,
+      createdAt: ratings.createdAt,
+      raterDisplayName: profiles.displayName,
+    })
+    .from(ratings)
+    .innerJoin(profiles, eq(profiles.id, ratings.raterId))
+    .where(and(eq(ratings.rateeId, rateeId), sql`${ratings.comment} is not null`))
+    .orderBy(desc(ratings.createdAt))
+    .limit(limit);
+}
+
 export async function submitRating(
   userId: string,
   pickupId: string,
