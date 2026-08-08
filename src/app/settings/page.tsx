@@ -1,3 +1,4 @@
+import { Typography } from "@heroui/react";
 import type { Metadata } from "next";
 
 import { PageShell } from "@/components/page-shell";
@@ -15,7 +16,9 @@ export default async function SettingsPage() {
 
   return (
     <PageShell center width="form">
-      <h1 className="mb-1 text-2xl font-semibold">Settings</h1>
+      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+        Settings
+      </Typography.Heading>
       <p className="text-muted mb-6 text-sm">Update how neighbors see you.</p>
       <SettingsForm displayName={profile.displayName} />
     </PageShell>

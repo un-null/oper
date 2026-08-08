@@ -69,6 +69,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
         </Chip>
       </div>
 
+      <h2 className="sr-only">Messages</h2>
       <MessageThread
         conversationId={conversation.id}
         initialMessages={messages}

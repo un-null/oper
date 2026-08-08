@@ -71,10 +71,10 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
 
       <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Chip color="danger" size="lg" variant="soft">
+          <Chip color="warning" size="lg" variant="primary">
             FREE
           </Chip>
-          <Chip color="accent" size="lg" variant="soft">
+          <Chip color="accent" size="lg" variant="primary">
             {CONDITION_LABELS[item.condition]}
           </Chip>
         </div>
@@ -104,37 +104,48 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         ) : null}
       </div>
 
-      {mapSpot ? (
-        <div className="flex flex-col gap-2">
-          <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub h-44 overflow-hidden border">
-            <PickupMap label={mapSpot.label} lat={mapSpot.lat} lng={mapSpot.lng} />
+      <div className="flex flex-col gap-2">
+        <h2 className="font-display text-lg font-bold tracking-tight">Pickup spot</h2>
+        {mapSpot ? (
+          <div className="flex flex-col gap-2">
+            <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub h-44 overflow-hidden border">
+              <PickupMap label={mapSpot.label} lat={mapSpot.lat} lng={mapSpot.lng} />
+            </div>
+            <a
+              className="text-accent self-start text-sm font-semibold hover:underline"
+              href={`https://www.google.com/maps/search/?api=1&query=${mapSpot.lat},${mapSpot.lng}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Open in Google Maps →
+            </a>
           </div>
-          <a
-            className="text-accent self-start text-sm font-semibold hover:underline"
-            href={`https://www.google.com/maps/search/?api=1&query=${mapSpot.lat},${mapSpot.lng}`}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Open in Google Maps →
-          </a>
-        </div>
-      ) : (
-        <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
-          <IconMapPin className="h-8 w-8" />
-          <p className="text-sm font-medium">{item.pickupSpot}</p>
-        </div>
-      )}
+        ) : (
+          <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
+            <IconMapPin className="h-8 w-8" />
+            <p className="text-sm font-medium">{item.pickupSpot}</p>
+          </div>
+        )}
 
-      {!hasExplicitFrom ? (
-        <p className="text-muted text-xs">
-          Distances are shown relative to a pickup spot — browse from the home page to see how far
-          this is.
-        </p>
+        {!hasExplicitFrom ? (
+          <p className="text-muted text-xs">
+            Distances are shown relative to a pickup spot — browse from the home page to see how far
+            this is.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h2 className="font-display text-lg font-bold tracking-tight">About the giver</h2>
+        <GiverProfileCard givenCount={givenCount} giver={item.giver} />
+      </div>
+
+      {recentRatings.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-lg font-bold tracking-tight">Recent ratings</h2>
+          <RatingComments ratings={recentRatings} />
+        </div>
       ) : null}
-
-      <GiverProfileCard givenCount={givenCount} giver={item.giver} />
-
-      <RatingComments ratings={recentRatings} />
 
       <p className="text-muted flex items-start gap-1.5 text-xs">
         <IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0" />

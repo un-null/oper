@@ -1,3 +1,4 @@
+import { Typography } from "@heroui/react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -24,7 +25,9 @@ export default async function OnboardingPage() {
 
   return (
     <PageShell center width="form">
-      <h1 className="mb-1 text-2xl font-semibold">Set up your profile</h1>
+      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+        Set up your profile
+      </Typography.Heading>
       <p className="text-muted mb-6 text-sm">One more step before you can give and receive.</p>
       <OnboardingForm />
     </PageShell>

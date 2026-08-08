@@ -1,6 +1,6 @@
 "use client";
 
-import { Label, ListBox, Select, ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import { Label, ListBox, Select, Skeleton, ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { IconMapPin } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
@@ -11,6 +11,18 @@ import { CATEGORY_LABELS } from "@/lib/item-labels";
 import { PICKUP_SPOTS } from "@/lib/pickup-spots";
 
 const ALL_CATEGORIES = "all";
+
+export function ItemFiltersFallback() {
+  return (
+    <div aria-hidden className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <Skeleton className="h-14 w-full sm:max-w-xs" />
+        <Skeleton className="h-14 w-40" />
+      </div>
+      <Skeleton className="h-8 w-full" />
+    </div>
+  );
+}
 
 export function ItemFilters() {
   const router = useRouter();

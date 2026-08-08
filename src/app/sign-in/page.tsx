@@ -1,3 +1,4 @@
+import { Typography } from "@heroui/react";
 import type { Metadata } from "next";
 
 import { PageShell } from "@/components/page-shell";
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default function SignInPage() {
   return (
     <PageShell center width="form">
-      <h1 className="mb-1 text-2xl font-semibold">Sign in</h1>
+      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+        Sign in
+      </Typography.Heading>
       <p className="mb-6 text-sm text-foreground/70">
         We'll email you a one-time code — no password needed.
       </p>

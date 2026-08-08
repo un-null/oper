@@ -1,3 +1,4 @@
+import { Typography } from "@heroui/react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -31,7 +32,9 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
 
   return (
     <PageShell width="focused">
-      <h1 className="mb-1 text-2xl font-semibold">Edit item</h1>
+      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+        Edit item
+      </Typography.Heading>
       <p className="text-muted mb-8 text-sm">Photos can't be changed here yet.</p>
       <EditItemForm
         category={item.category}
