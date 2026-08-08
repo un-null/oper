@@ -59,8 +59,8 @@ test("a new user is redirected to onboarding after signing in", async ({ page })
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page).toHaveURL("/");
-  await page.goto("/");
-  await expect(page.getByText("Signed in as")).toBeVisible();
+  await page.goto("/settings");
+  await expect(page.getByText(email)).toBeVisible();
 });
 
 test("a posted item can be found on the browse list and viewed on its detail page", async ({
