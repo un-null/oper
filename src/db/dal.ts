@@ -112,7 +112,7 @@ export function updateMyItem(
     .returning();
 }
 
-export type ItemCard = Omit<typeof items.$inferSelect, "location" | "photoUrl"> & {
+export type ItemCard = Omit<typeof items.$inferSelect, "location"> & {
   photoUrl: string | null;
 };
 
