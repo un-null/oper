@@ -38,10 +38,7 @@ export function SiteHeader({ displayName, session }: SiteHeaderProps) {
             <Link className={ctaPill} href="/items/new">
               Give something away
             </Link>
-            <UserMenu
-              displayName={displayName ?? session.user.name}
-              userId={session.user.id}
-            />
+            <UserMenu displayName={displayName ?? session.user.name} userId={session.user.id} />
           </div>
         </>
       ) : (

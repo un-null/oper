@@ -49,9 +49,12 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <PageShell className="gap-8" width="feed">
       <div>
-        <Typography.Paragraph className="mt-1" color="muted">
+        <Typography.Heading
+          className="font-display max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl"
+          level={1}
+        >
           Give away the things you don't need to neighbors nearby.
-        </Typography.Paragraph>
+        </Typography.Heading>
       </div>
 
       <h2 className="sr-only">Filters</h2>
