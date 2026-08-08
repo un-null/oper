@@ -60,14 +60,28 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
   const backHref = backQuery ? `/?${backQuery}` : "/";
 
   return (
-    <PageShell className="gap-8" stickyCta width="focused">
-      <Link
-        aria-label="Back to nearby items"
-        className={buttonVariants({ isIconOnly: true, variant: "outline" })}
-        href={backHref}
-      >
-        <IconArrowLeft className="h-4 w-4" />
-      </Link>
+    <PageShell className="gap-8" stickyCta={!isOwner} width="focused">
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          aria-label="Back to nearby items"
+          className={buttonVariants({ isIconOnly: true, variant: "outline" })}
+          href={backHref}
+        >
+          <IconArrowLeft className="h-4 w-4" />
+        </Link>
+
+        {isOwner ? (
+          <div className="flex items-center gap-2">
+            <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+            <Link
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              href={`/items/${item.id}/edit`}
+            >
+              Edit
+            </Link>
+          </div>
+        ) : null}
+      </div>
 
       <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -152,30 +166,19 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         Exact addresses are never shown — pickup happens at a shared public spot.
       </p>
 
-      <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-10 border-t px-4 py-3 backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          {isOwner ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">This is your item</span>
-                <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
-              </div>
-              <Link
-                className={buttonVariants({ size: "sm", variant: "outline" })}
-                href={`/items/${item.id}/edit`}
-              >
-                Edit
+      {!isOwner ? (
+        <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-1100 border-t px-4 py-3 backdrop-blur sm:px-6">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+            {viewerId === null ? (
+              <Link className={buttonVariants()} href="/sign-in">
+                Sign in to message
               </Link>
-            </div>
-          ) : viewerId === null ? (
-            <Link className={buttonVariants()} href="/sign-in">
-              Sign in to message
-            </Link>
-          ) : (
-            <MessageGiverButton itemId={item.id} />
-          )}
+            ) : (
+              <MessageGiverButton itemId={item.id} />
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </PageShell>
   );
 }
