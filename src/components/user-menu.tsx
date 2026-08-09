@@ -6,13 +6,12 @@ import Avatar from "boring-avatars";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
+import { AVATAR_COLORS } from "@/lib/avatar";
 
 type UserMenuProps = {
   userId: string;
   displayName: string;
 };
-
-const AVATAR_COLORS = ["#3f7a4f", "#e6f0e3", "#d9764a", "#fbe8de", "#16201a"];
 
 export function UserMenu({ displayName, userId }: UserMenuProps) {
   const router = useRouter();
@@ -27,9 +26,12 @@ export function UserMenu({ displayName, userId }: UserMenuProps) {
 
   return (
     <Dropdown>
-      <button aria-label={`Account menu for ${displayName}`} className="block" type="button">
+      <Dropdown.Trigger
+        aria-label={`Account menu for ${displayName}`}
+        className="ring-offset-background focus-visible:ring-accent rounded-full focus-visible:ring-2 focus-visible:ring-offset-2"
+      >
         <Avatar colors={AVATAR_COLORS} name={userId} size={36} variant="beam" />
-      </button>
+      </Dropdown.Trigger>
       <Dropdown.Popover className="min-w-50">
         <Dropdown.Menu onAction={handleAction}>
           <Dropdown.Section>
