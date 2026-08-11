@@ -15,7 +15,7 @@ export function SignOutButton() {
   }
 
   return (
-    <Button onPress={handleSignOut} variant="outline">
+    <Button onPress={handleSignOut} variant="danger-soft">
       Sign out
     </Button>
   );
