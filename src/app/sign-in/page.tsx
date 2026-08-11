@@ -1,6 +1,7 @@
-import { Typography } from "@heroui/react";
+import { Separator, Typography } from "@heroui/react";
 import type { Metadata } from "next";
 
+import { GuestSignInButton } from "@/components/guest-sign-in-button";
 import { PageShell } from "@/components/page-shell";
 import { SignInForm } from "@/components/sign-in-form";
 
@@ -19,6 +20,15 @@ export default function SignInPage() {
         We'll email you a one-time code — no password needed.
       </p>
       <SignInForm />
+      <div className="my-6 flex items-center gap-3">
+        <Separator className="flex-1" />
+        <span className="text-muted text-xs uppercase">or</span>
+        <Separator className="flex-1" />
+      </div>
+      <GuestSignInButton />
+      <p className="text-muted mt-2 text-center text-xs">
+        Try Oper instantly with a demo account — no email required.
+      </p>
     </PageShell>
   );
 }
