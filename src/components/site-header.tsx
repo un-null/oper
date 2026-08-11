@@ -1,12 +1,10 @@
-import { linkVariants } from "@heroui/styles";
 import Image from "next/image";
 import Link from "next/link";
 
-import { SignOutButton } from "@/components/sign-out-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggleButton } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import type { auth } from "@/lib/auth";
 
-const link = linkVariants();
 const pill =
   "border-border text-foreground hover:border-foreground rounded-full border px-4 py-1.5 transition-colors";
 const ctaPill =
@@ -14,15 +12,16 @@ const ctaPill =
 
 type SiteHeaderProps = {
   session: Awaited<ReturnType<typeof auth.api.getSession>>;
+  displayName?: string;
 };
 
-export function SiteHeader({ session }: SiteHeaderProps) {
+export function SiteHeader({ displayName, session }: SiteHeaderProps) {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 sm:py-6">
       <Link href="/">
         <Image
           alt="Oper"
-          className="h-14 w-auto"
+          className="h-10 w-auto sm:h-14"
           height={250}
           priority
           src="/logo-text.svg"
@@ -32,31 +31,19 @@ export function SiteHeader({ session }: SiteHeaderProps) {
 
       {session ? (
         <>
-          <div className="flex items-center gap-2 sm:hidden">
-            <ThemeToggle />
-            <SignOutButton />
+          <div className="sm:hidden">
+            <ThemeToggleButton />
           </div>
-          <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
-            <Link className={link.base()} href="/">
-              Home
-            </Link>
-            <Link className={link.base()} href="/items">
-              My items
-            </Link>
-            <Link className={link.base()} href="/messages">
-              Messages
-            </Link>
+          <div className="hidden items-center gap-4 sm:flex">
             <Link className={ctaPill} href="/items/new">
               Give something away
             </Link>
-            <span className="text-muted">Signed in as {session.user.email}</span>
-            <SignOutButton />
-            <ThemeToggle />
-          </nav>
+            <UserMenu displayName={displayName ?? session.user.name} userId={session.user.id} />
+          </div>
         </>
       ) : (
         <div className="flex items-center gap-2 text-sm font-medium">
-          <ThemeToggle />
+          <ThemeToggleButton />
           <Link className={pill} href="/sign-in">
             Sign in
           </Link>

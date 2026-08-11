@@ -36,6 +36,13 @@
       "when": 1785949320199,
       "tag": "0004_new_toro",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786158136791,
+      "tag": "0005_wide_bulldozer",
+      "breakpoints": true
     }
   ]
 }

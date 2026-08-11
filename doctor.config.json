@@ -1,0 +1,9 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    "react-doctor/no-initialize-state": "off",
+    "react-doctor/no-create-object-url-without-revoke": "off",
+    "deslop/unused-export": "off",
+    "deslop/unused-dependency": "off"
+  }
+}

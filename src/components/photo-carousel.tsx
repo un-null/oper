@@ -30,13 +30,18 @@ export function PhotoCarousel({ alt, children, photoUrls }: PhotoCarouselProps) 
         </div>
       )}
 
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/25 to-transparent"
+      />
+
       {children}
 
       {photoUrls.length > 1 ? (
         <>
           <button
             aria-label="Previous photo"
-            className="bg-background/80 hover:bg-background absolute top-1/2 left-2 -translate-y-1/2 rounded-full p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+            className="bg-background/80 hover:bg-background absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
             onClick={() =>
               setIndex((current) => (current - 1 + photoUrls.length) % photoUrls.length)
             }
@@ -46,25 +51,30 @@ export function PhotoCarousel({ alt, children, photoUrls }: PhotoCarouselProps) 
           </button>
           <button
             aria-label="Next photo"
-            className="bg-background/80 hover:bg-background absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+            className="bg-background/80 hover:bg-background absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
             onClick={() => setIndex((current) => (current + 1) % photoUrls.length)}
             type="button"
           >
             <IconChevronRight className="h-5 w-5" />
           </button>
 
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-0.5">
             {photoUrls.map((url, i) => (
               <button
-                aria-current={i === index}
+                aria-current={i === index ? "true" : undefined}
                 aria-label={`Photo ${i + 1}`}
-                className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                  i === index ? "bg-foreground" : "bg-background/80"
-                }`}
+                className="flex h-6 w-6 items-center justify-center"
                 key={url}
                 onClick={() => setIndex(i)}
                 type="button"
-              />
+              >
+                <span
+                  aria-hidden
+                  className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                    i === index ? "bg-foreground" : "bg-background/80"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </>

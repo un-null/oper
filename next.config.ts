@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "24mb",
     },
+    optimizePackageImports: ["@tabler/icons-react", "@heroui/react"],
   },
 };
 

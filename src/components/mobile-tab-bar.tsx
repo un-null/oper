@@ -1,11 +1,17 @@
 "use client";
 
-import { IconHome, IconMessageCircle, IconPackage, IconPlus } from "@tabler/icons-react";
+import {
+  IconHome,
+  IconMessageCircle,
+  IconPackage,
+  IconPlus,
+  IconSettings,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabClass = (active: boolean) =>
-  `flex flex-col items-center gap-0.5 px-4 py-2 ${active ? "text-accent" : "text-muted"}`;
+  `flex flex-col items-center gap-0.5 px-4 py-2 ${active ? "text-accent font-semibold" : "text-muted"}`;
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -59,7 +65,14 @@ export function MobileTabBar({ isSignedIn }: { isSignedIn: boolean }) {
         <span className="text-[11px] font-medium">Messages</span>
       </Link>
 
-      <div aria-hidden="true" />
+      <Link
+        aria-current={isActive(pathname, "/settings") ? "page" : undefined}
+        className={tabClass(isActive(pathname, "/settings"))}
+        href="/settings"
+      >
+        <IconSettings className="h-5 w-5" />
+        <span className="text-[11px] font-medium">Settings</span>
+      </Link>
     </nav>
   );
 }

@@ -1,3 +1,4 @@
+import { Typography } from "@heroui/react";
 import type { Metadata } from "next";
 
 import { PageShell } from "@/components/page-shell";
@@ -14,7 +15,9 @@ export default async function NewItemPage() {
 
   return (
     <PageShell width="focused">
-      <h1 className="mb-1 text-2xl font-semibold">Give something away</h1>
+      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+        Give something away
+      </Typography.Heading>
       <p className="text-muted mb-8 text-sm">Someone nearby probably needs it. Posting is free.</p>
       <PostItemForm />
     </PageShell>

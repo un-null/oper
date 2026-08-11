@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createMyProfile, requireUserId } from "@/db/dal";
@@ -18,5 +19,6 @@ export async function completeOnboarding(
 
   const userId = await requireUserId();
   await createMyProfile(userId, parsed.data);
+  refresh();
   redirect("/");
 }

@@ -1,22 +1,18 @@
 import { Avatar, buttonVariants, Typography } from "@heroui/react";
+import { IconMessageOff } from "@tabler/icons-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/page-shell";
 import { getMyConversations, requireProfile } from "@/db/dal";
+import { dayTimeFormatter as timeFormatter } from "@/lib/date-format";
 import { initialsFor } from "@/lib/initials";
 
 export const metadata: Metadata = {
   title: "Messages — Oper",
   description: "Conversations with givers and receivers.",
 };
-
-const timeFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default async function MessagesPage() {
   const profile = await requireProfile();
@@ -31,19 +27,24 @@ export default async function MessagesPage() {
         </Typography.Paragraph>
       </div>
 
+      <h2 className="sr-only">Conversations</h2>
       {conversations.length === 0 ? (
-        <div className="border-border rounded-lg border border-dashed px-6 py-16 text-center">
-          <p className="text-muted text-sm">No conversations yet.</p>
-          <Link className={buttonVariants({ className: "mt-4" })} href="/">
-            Browse nearby items
-          </Link>
-        </div>
+        <EmptyState
+          action={
+            <Link className={buttonVariants()} href="/">
+              Browse nearby items
+            </Link>
+          }
+          description="Find something you'd like and message the giver to get started."
+          icon={IconMessageOff}
+          title="No conversations yet"
+        />
       ) : (
         <ul className="flex flex-col gap-2">
           {conversations.map((conversation) => (
             <li key={conversation.id}>
               <Link
-                className="border-border hover:bg-accent-soft flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+                className="border-border hover:bg-accent-soft rounded-stub flex items-center gap-3 border px-4 py-3 transition-colors"
                 href={`/messages/${conversation.id}`}
               >
                 <Avatar>

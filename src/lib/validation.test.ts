@@ -96,6 +96,27 @@ describe("parsePickupTime", () => {
   it("rejects malformed input", () => {
     expect(parsePickupTime("not-a-date", "12:00")).toBeNull();
   });
+
+  it("parses to the same instant regardless of the server's local timezone", () => {
+    const future = new Date(Date.now() + 86_400_000);
+    const date = future.toISOString().slice(0, 10);
+    const time = "15:00";
+
+    const originalTz = process.env.TZ;
+    try {
+      process.env.TZ = "UTC";
+      const utc = parsePickupTime(date, time);
+      process.env.TZ = "America/Los_Angeles";
+      const pst = parsePickupTime(date, time);
+      process.env.TZ = "Asia/Tokyo";
+      const jst = parsePickupTime(date, time);
+
+      expect(utc?.getTime()).toBe(pst?.getTime());
+      expect(utc?.getTime()).toBe(jst?.getTime());
+    } finally {
+      process.env.TZ = originalTz;
+    }
+  });
 });
 
 describe("ratingSchema", () => {

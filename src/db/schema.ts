@@ -70,7 +70,6 @@ export const items = pgTable(
     status: itemStatusEnum("status").notNull().default("active"),
     location: geometry("location", { type: "point", mode: "xy", srid: 4326 }).notNull(),
     pickupSpot: text("pickup_spot").notNull(),
-    photoUrl: text("photo_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

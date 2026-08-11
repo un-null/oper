@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, getTableColumns, or, sql } from "drizzle-orm";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { db } from "@/db";
 import {
@@ -12,7 +12,7 @@ import {
   profiles,
   ratings,
 } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth";
 
 export class UnauthorizedError extends Error {
   constructor(message = "Not authenticated") {
@@ -22,7 +22,7 @@ export class UnauthorizedError extends Error {
 }
 
 export async function requireUserId(): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new UnauthorizedError();
   }
@@ -30,7 +30,7 @@ export async function requireUserId(): Promise<string> {
 }
 
 export async function getViewerId(): Promise<string | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   return session?.user?.id ?? null;
 }
 
@@ -101,6 +101,15 @@ export async function createItem(
   });
 }
 
+export async function findMyItem(userId: string, itemId: string) {
+  const [row] = await db
+    .select(itemCardColumns)
+    .from(items)
+    .where(and(eq(items.id, itemId), eq(items.giverId, userId)))
+    .limit(1);
+  return row;
+}
+
 export function updateMyItem(
   userId: string,
   itemId: string,
@@ -113,7 +122,7 @@ export function updateMyItem(
     .returning();
 }
 
-export type ItemCard = Omit<typeof items.$inferSelect, "location" | "photoUrl"> & {
+export type ItemCard = Omit<typeof items.$inferSelect, "location"> & {
   photoUrl: string | null;
 };
 
@@ -206,10 +215,10 @@ export async function countGivenItems(giverId: string): Promise<number> {
 
 // profiles
 
-export async function getMyProfile(userId: string) {
+export const getMyProfile = cache(async (userId: string) => {
   const [profile] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   return profile;
-}
+});
 
 export async function createMyProfile(userId: string, displayName: string) {
   const [profile] = await db.insert(profiles).values({ id: userId, displayName }).returning();
@@ -221,7 +230,7 @@ export function updateMyProfile(userId: string, values: { displayName: string })
 }
 
 export async function requireProfile() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     redirect("/sign-in");
   }
@@ -651,6 +660,33 @@ export async function findRatablePickup(
     .limit(1);
 
   return row;
+}
+
+export type RecentRating = {
+  id: string;
+  stars: number;
+  comment: string;
+  createdAt: Date;
+  raterDisplayName: string;
+};
+
+export async function findRecentRatingsFor(
+  rateeId: string,
+  limit: number,
+): Promise<RecentRating[]> {
+  return db
+    .select({
+      id: ratings.id,
+      stars: ratings.stars,
+      comment: sql<string>`${ratings.comment}`,
+      createdAt: ratings.createdAt,
+      raterDisplayName: profiles.displayName,
+    })
+    .from(ratings)
+    .innerJoin(profiles, eq(profiles.id, ratings.raterId))
+    .where(and(eq(ratings.rateeId, rateeId), sql`${ratings.comment} is not null`))
+    .orderBy(desc(ratings.createdAt))
+    .limit(limit);
 }
 
 export async function submitRating(

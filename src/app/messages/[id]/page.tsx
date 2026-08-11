@@ -38,9 +38,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
     notFound();
   }
 
-  const messages = await getConversationMessages(profile.id, conversation.id);
-  const pickup = await findConversationPickup(profile.id, conversation.id);
-  const ratable = await findRatablePickup(profile.id, conversation.id);
+  const [messages, pickup, ratable] = await Promise.all([
+    getConversationMessages(profile.id, conversation.id),
+    findConversationPickup(profile.id, conversation.id),
+    findRatablePickup(profile.id, conversation.id),
+  ]);
 
   return (
     <PageShell className="gap-6" width="focused">
@@ -67,6 +69,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
         </Chip>
       </div>
 
+      <h2 className="sr-only">Messages</h2>
       <MessageThread
         conversationId={conversation.id}
         initialMessages={messages}

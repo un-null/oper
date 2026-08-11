@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
+import { headers } from "next/headers";
+import { cache } from "react";
 
 import { db, schema } from "@/db";
 import { AUTH_EMAIL_FROM, getResend } from "@/lib/resend";
@@ -29,4 +31,8 @@ export const auth = betterAuth({
     }),
     nextCookies(),
   ],
+});
+
+export const getCachedSession = cache(async () => {
+  return auth.api.getSession({ headers: await headers() });
 });

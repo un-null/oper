@@ -1,7 +1,18 @@
+# Supply-chain hardening: wait 1440 min (24h) before accepting a newly published
+# version, so malware caught and unpublished within hours never reaches us.
+minimumReleaseAge: 1440
+# `trustPolicy: no-downgrade` was evaluated and rejected: it fails the install on
+# semver@6.3.1 and undici-types@6.21.0, both transitive deps of next/@babel that
+# predate provenance attestations. See local_memo/code-health.md.
+
 allowBuilds:
   esbuild: true
+  # puppeteer's postinstall downloads its bundled Chromium; required for unlighthouse (devDependency) to run.
+  puppeteer: true
   sharp: true
   unrs-resolver: true
+  # vue-demi's postinstall is a no-op compat shim pulled in by unlighthouse's Nuxt-based UI client.
+  vue-demi: true
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

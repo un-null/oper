@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 
 import { Providers } from "@/app/providers";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { SiteHeader } from "@/components/site-header";
-import { auth } from "@/lib/auth";
+import { getMyProfile } from "@/db/dal";
+import { getCachedSession } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +34,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getCachedSession();
+  const profile = session?.user?.id ? await getMyProfile(session.user.id) : undefined;
 
   return (
     <html
@@ -44,7 +45,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <Providers>
-          <SiteHeader session={session} />
+          <SiteHeader displayName={profile?.displayName} session={session} />
           {children}
           <MobileTabBar isSignedIn={session !== null} />
           <div aria-hidden className="h-20 shrink-0 sm:hidden" />

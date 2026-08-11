@@ -10,8 +10,10 @@ import { MessageGiverButton } from "@/components/message-giver-button";
 import { PageShell } from "@/components/page-shell";
 import { PhotoCarousel } from "@/components/photo-carousel";
 import { PickupMap } from "@/components/pickup-map";
-import { countGivenItems, findItemDetail, getViewerId } from "@/db/dal";
+import { RatingComments } from "@/components/rating-comments";
+import { countGivenItems, findItemDetail, findRecentRatingsFor, getViewerId } from "@/db/dal";
 import { parseBrowseParams } from "@/lib/browse-params";
+import { dateFormatter } from "@/lib/date-format";
 import { CATEGORY_LABELS, CONDITION_LABELS } from "@/lib/item-labels";
 import { findPickupSpot, findPickupSpotByLabel } from "@/lib/pickup-spots";
 
@@ -19,12 +21,6 @@ export const metadata: Metadata = {
   title: "Item — Oper",
   description: "Item details, pickup spot, and giver profile.",
 };
-
-const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
 
 type ItemDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -51,7 +47,10 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
     notFound();
   }
 
-  const givenCount = await countGivenItems(item.giverId);
+  const [givenCount, recentRatings] = await Promise.all([
+    countGivenItems(item.giverId),
+    findRecentRatingsFor(item.giverId, 3),
+  ]);
   const isOwner = viewerId === item.giverId;
   const mapSpot = findPickupSpotByLabel(item.pickupSpot);
 
@@ -61,21 +60,35 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
   const backHref = backQuery ? `/?${backQuery}` : "/";
 
   return (
-    <PageShell className="gap-8" stickyCta width="focused">
-      <Link
-        aria-label="Back to nearby items"
-        className={buttonVariants({ isIconOnly: true, variant: "outline" })}
-        href={backHref}
-      >
-        <IconArrowLeft className="h-4 w-4" />
-      </Link>
+    <PageShell className="gap-8" stickyCta={!isOwner} width="focused">
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          aria-label="Back to nearby items"
+          className={buttonVariants({ isIconOnly: true, variant: "outline" })}
+          href={backHref}
+        >
+          <IconArrowLeft className="h-4 w-4" />
+        </Link>
+
+        {isOwner ? (
+          <div className="flex items-center gap-2">
+            <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
+            <Link
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              href={`/items/${item.id}/edit`}
+            >
+              Edit
+            </Link>
+          </div>
+        ) : null}
+      </div>
 
       <PhotoCarousel alt={item.title} photoUrls={item.photoUrls}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Chip color="danger" size="lg" variant="soft">
+          <Chip color="warning" size="lg" variant="primary">
             FREE
           </Chip>
-          <Chip color="accent" size="lg" variant="soft">
+          <Chip color="accent" size="lg" variant="primary">
             {CONDITION_LABELS[item.condition]}
           </Chip>
         </div>
@@ -105,57 +118,67 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
         ) : null}
       </div>
 
-      {mapSpot ? (
-        <div className="flex flex-col gap-2">
-          <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub h-44 overflow-hidden border">
-            <PickupMap label={mapSpot.label} lat={mapSpot.lat} lng={mapSpot.lng} />
+      <div className="flex flex-col gap-2">
+        <h2 className="font-display text-lg font-bold tracking-tight">Pickup spot</h2>
+        {mapSpot ? (
+          <div className="flex flex-col gap-2">
+            <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub h-44 overflow-hidden border">
+              <PickupMap label={mapSpot.label} lat={mapSpot.lat} lng={mapSpot.lng} />
+            </div>
+            <a
+              className="text-accent self-start text-sm font-semibold hover:underline"
+              href={`https://www.google.com/maps/search/?api=1&query=${mapSpot.lat},${mapSpot.lng}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Open in Google Maps →
+            </a>
           </div>
-          <a
-            className="text-accent self-start text-sm font-semibold hover:underline"
-            href={`https://www.google.com/maps/search/?api=1&query=${mapSpot.lat},${mapSpot.lng}`}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Open in Google Maps →
-          </a>
-        </div>
-      ) : (
-        <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
-          <IconMapPin className="h-8 w-8" />
-          <p className="text-sm font-medium">{item.pickupSpot}</p>
-        </div>
-      )}
+        ) : (
+          <div className="border-border bg-accent-soft text-accent-soft-foreground rounded-stub flex h-44 flex-col items-center justify-center gap-2 border">
+            <IconMapPin className="h-8 w-8" />
+            <p className="text-sm font-medium">{item.pickupSpot}</p>
+          </div>
+        )}
 
-      {!hasExplicitFrom ? (
-        <p className="text-muted text-xs">
-          Distances are shown relative to a pickup spot — browse from the home page to see how far
-          this is.
-        </p>
+        {!hasExplicitFrom ? (
+          <p className="text-muted text-xs">
+            Distances are shown relative to a pickup spot — browse from the home page to see how far
+            this is.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h2 className="font-display text-lg font-bold tracking-tight">About the giver</h2>
+        <GiverProfileCard givenCount={givenCount} giver={item.giver} />
+      </div>
+
+      {recentRatings.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="font-display text-lg font-bold tracking-tight">Recent ratings</h2>
+          <RatingComments ratings={recentRatings} />
+        </div>
       ) : null}
-
-      <GiverProfileCard givenCount={givenCount} giver={item.giver} />
 
       <p className="text-muted flex items-start gap-1.5 text-xs">
         <IconInfoCircle className="mt-0.5 h-4 w-4 shrink-0" />
         Exact addresses are never shown — pickup happens at a shared public spot.
       </p>
 
-      <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-10 border-t px-4 py-3 backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          {isOwner ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">This is your item</span>
-              <Chip color={item.status === "active" ? "success" : "default"}>{item.status}</Chip>
-            </div>
-          ) : viewerId === null ? (
-            <Link className={buttonVariants()} href="/sign-in">
-              Sign in to message
-            </Link>
-          ) : (
-            <MessageGiverButton itemId={item.id} />
-          )}
+      {!isOwner ? (
+        <div className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-1100 border-t px-4 py-3 backdrop-blur sm:px-6">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+            {viewerId === null ? (
+              <Link className={buttonVariants()} href="/sign-in">
+                Sign in to message
+              </Link>
+            ) : (
+              <MessageGiverButton itemId={item.id} />
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </PageShell>
   );
 }

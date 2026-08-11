@@ -6,6 +6,7 @@ import { useActionState, useOptimistic } from "react";
 import { type SendMessageState, sendMessage } from "@/app/messages/actions";
 import { PollRefresh } from "@/components/poll-refresh";
 import type { messages } from "@/db/schema";
+import { timeFormatter } from "@/lib/date-format";
 
 type Message = typeof messages.$inferSelect;
 
@@ -17,11 +18,6 @@ type MessageThreadProps = {
 };
 
 const initialState: SendMessageState = { error: null };
-
-const timeFormatter = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export function MessageThread({
   conversationId,
@@ -61,7 +57,7 @@ export function MessageThread({
           return (
             <li className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`} key={message.id}>
               <div
-                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                className={`max-w-[80%] rounded-stub px-3 py-2 text-sm ${
                   isOwn ? "bg-accent text-accent-foreground" : "bg-accent-soft"
                 }`}
               >
