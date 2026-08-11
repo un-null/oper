@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, getTableColumns, or, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { db } from "@/db";
 import {
@@ -214,10 +215,10 @@ export async function countGivenItems(giverId: string): Promise<number> {
 
 // profiles
 
-export async function getMyProfile(userId: string) {
+export const getMyProfile = cache(async (userId: string) => {
   const [profile] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   return profile;
-}
+});
 
 export async function createMyProfile(userId: string, displayName: string) {
   const [profile] = await db.insert(profiles).values({ id: userId, displayName }).returning();
