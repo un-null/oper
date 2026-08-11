@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUserId, updateMyProfile } from "@/db/dal";
@@ -18,5 +19,6 @@ export async function updateSettings(
 
   const userId = await requireUserId();
   await updateMyProfile(userId, { displayName: parsed.data });
+  refresh();
   redirect("/settings");
 }
