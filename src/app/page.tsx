@@ -50,7 +50,7 @@ export default async function Home({ searchParams }: HomeProps) {
     <PageShell className="gap-8" width="feed">
       <div>
         <Typography.Heading
-          className="font-display max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl"
+          className="font-display max-w-2xl text-2xl font-bold tracking-tight sm:text-2xl"
           level={1}
         >
           Give away the things you don't need to neighbors nearby.
