@@ -43,6 +43,13 @@
       "when": 1786158136791,
       "tag": "0005_wide_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786439551517,
+      "tag": "0006_striped_baron_zemo",
+      "breakpoints": true
     }
   ]
 }
