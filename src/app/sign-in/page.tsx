@@ -12,23 +12,17 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <PageShell center width="form">
-      <Typography.Heading className="mb-1 text-2xl font-semibold" level={1}>
+    <PageShell center className="gap-6" width="form">
+      <Typography.Heading className="text-2xl font-semibold" level={1}>
         Sign in
       </Typography.Heading>
-      <p className="mb-6 text-sm text-foreground/70">
-        We'll email you a one-time code — no password needed.
-      </p>
       <SignInForm />
-      <div className="my-6 flex items-center gap-3">
+      <div className="flex w-full items-center gap-3">
         <Separator className="flex-1" />
         <span className="text-muted text-xs uppercase">or</span>
         <Separator className="flex-1" />
       </div>
       <GuestSignInButton />
-      <p className="text-muted mt-2 text-center text-xs">
-        Try Oper instantly with a demo account — no email required.
-      </p>
     </PageShell>
   );
 }

@@ -40,7 +40,7 @@ type EmailStepProps = {
 
 function EmailStep({ email, onEmailChange, onSubmit, isPending, error }: EmailStepProps) {
   return (
-    <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <Form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
       <TextField
         isDisabled={isPending}
         isRequired
@@ -54,7 +54,7 @@ function EmailStep({ email, onEmailChange, onSubmit, isPending, error }: EmailSt
         <FieldError />
       </TextField>
       {error ? <p className="text-danger text-sm">{error}</p> : null}
-      <Button isDisabled={!email} isPending={isPending} type="submit">
+      <Button className="w-full" isDisabled={!email} isPending={isPending} type="submit">
         {({ isPending: pending }) => (
           <>
             {pending ? <Spinner color="current" size="sm" /> : null}
@@ -90,7 +90,7 @@ function OtpStep({
   cooldownRemaining,
 }: OtpStepProps) {
   return (
-    <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <Form className="flex w-full flex-col gap-4" onSubmit={onSubmit}>
       <p className="text-muted text-sm">
         Code sent to <span className="text-foreground font-medium">{email}</span>
       </p>
@@ -117,7 +117,7 @@ function OtpStep({
         </InputOTP>
       </div>
       {error ? <p className="text-danger text-sm">{error}</p> : null}
-      <Button isDisabled={otp.length < 6} isPending={isPending} type="submit">
+      <Button className="w-full" isDisabled={otp.length < 6} isPending={isPending} type="submit">
         {({ isPending: pending }) => (
           <>
             {pending ? <Spinner color="current" size="sm" /> : null}
