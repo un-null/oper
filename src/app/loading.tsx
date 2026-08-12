@@ -9,10 +9,8 @@ const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f"];
 export default function Loading() {
   return (
     <PageShell className="gap-8" width="feed">
-      <div>
-        <Skeleton className="h-9 w-32" />
-        <Skeleton className="mt-2 h-5 w-64" />
-      </div>
+      {/* Tracks HomeHero's min-h floors so the hero does not jump on hydration. */}
+      <Skeleton className="rounded-stub h-[420px] w-full sm:h-[480px] md:h-[380px] lg:h-[420px]" />
       <ItemFiltersFallback />
       <div aria-hidden className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {SKELETON_KEYS.map((key) => (

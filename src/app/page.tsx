@@ -1,10 +1,11 @@
-import { buttonVariants, Typography } from "@heroui/react";
+import { buttonVariants } from "@heroui/react";
 import { IconMapPinOff } from "@tabler/icons-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { EmptyState } from "@/components/empty-state";
+import { HomeHero } from "@/components/home-hero";
 import { ItemCard } from "@/components/item-card";
 import { ItemFilters, ItemFiltersFallback } from "@/components/item-filters";
 import { PageShell } from "@/components/page-shell";
@@ -48,14 +49,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <PageShell className="gap-8" width="feed">
-      <div>
-        <Typography.Heading
-          className="font-display max-w-2xl text-2xl font-bold tracking-tight sm:text-2xl"
-          level={1}
-        >
-          Give away the things you don't need to neighbors nearby.
-        </Typography.Heading>
-      </div>
+      <HomeHero />
 
       <h2 className="sr-only">Filters</h2>
       <Suspense fallback={<ItemFiltersFallback />}>
@@ -84,13 +78,12 @@ export default async function Home({ searchParams }: HomeProps) {
         />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {nearbyItems.map((item, index) => (
+          {nearbyItems.map((item) => (
             <ItemCard
               distanceKm={item.distanceKm}
               href={query ? `/items/${item.id}?${query}` : `/items/${item.id}`}
               item={item}
               key={item.id}
-              priority={index === 0}
             />
           ))}
         </div>
