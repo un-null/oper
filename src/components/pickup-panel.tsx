@@ -77,7 +77,7 @@ function PickupCard({ status, children }: { status?: React.ReactNode; children: 
     <div className="border-border bg-surface rounded-stub flex flex-col gap-3 border p-4">
       <div className="flex items-center gap-2">
         <IconCalendar className="text-muted h-4 w-4" />
-        <span className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
+        <span className="font-label text-muted text-xs font-semibold tracking-[0.18em] uppercase">
           Pickup
         </span>
         {status ? <div className="ml-auto">{status}</div> : null}

@@ -37,7 +37,7 @@ export function ItemCard({ distanceKm, href, item, priority }: ItemCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <span className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">
+        <span className="font-label text-accent text-xs font-semibold tracking-[0.18em] uppercase">
           {CATEGORY_LABELS[item.category]}
         </span>
         <h3 className="font-display mt-2 text-xl leading-tight font-bold tracking-tight">
@@ -67,7 +67,7 @@ export function ItemCard({ distanceKm, href, item, priority }: ItemCardProps) {
       <div className="flex items-center justify-between gap-3 p-5 pt-4">
         <span className="text-muted text-sm">
           Pickup only ·{" "}
-          <span className="font-display text-warning-soft-foreground text-lg font-bold">FREE</span>
+          <span className="font-label text-warning-soft-foreground text-lg font-bold">FREE</span>
         </span>
         {href ? (
           <span className="text-accent shrink-0 text-sm font-semibold transition-transform group-hover:translate-x-0.5">

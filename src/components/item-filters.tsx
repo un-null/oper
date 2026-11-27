@@ -59,7 +59,7 @@ export function ItemFilters() {
           }}
           value={currentFrom}
         >
-          <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase">
+          <Label className="font-label text-muted text-xs font-semibold tracking-[0.18em] uppercase">
             Near
           </Label>
           <Select.Trigger className="items-center gap-2">
@@ -80,7 +80,7 @@ export function ItemFilters() {
         </Select>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="font-display text-muted text-xs font-semibold tracking-[0.18em] uppercase sm:text-right">
+          <Label className="font-label text-muted text-xs font-semibold tracking-[0.18em] uppercase sm:text-right">
             Radius
           </Label>
           <ToggleButtonGroup

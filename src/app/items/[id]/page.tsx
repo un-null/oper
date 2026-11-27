@@ -95,7 +95,7 @@ export default async function ItemDetailPage({ params, searchParams }: ItemDetai
       </PhotoCarousel>
 
       <div className="flex flex-col gap-2">
-        <p className="font-display text-accent text-xs font-semibold tracking-[0.18em] uppercase">
+        <p className="font-label text-accent text-xs font-semibold tracking-[0.18em] uppercase">
           {CATEGORY_LABELS[item.category]}
         </p>
         <Typography.Heading level={1}>{item.title}</Typography.Heading>
