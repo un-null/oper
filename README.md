@@ -21,7 +21,7 @@ Browse items near a pickup spot, filtered by radius and category:
 
 ![Browse screen](docs/images/browse.png)
 
-Item detail with photo, condition, pickup-spot hint, and the message call to action:
+Item detail with photo, condition badges, description, and the message call to action:
 
 ![Item detail](docs/images/detail.png)
 
@@ -31,7 +31,7 @@ Conversation thread with an embedded pickup proposal:
 
 ## Design decisions
 
-1. **Authorization lives in the DAL, not in the UI, middleware, or RLS.** Hiding a button is not access control. Every DAL function receives the viewer id and filters by ownership or participation, so a Server Action cannot accidentally widen access. A real-database test suite pins down the rules: only an owner can edit an item, only participants can read a conversation, and only a completed pickup can be rated.
+1. **Authorization lives in the DAL, not in the UI, middleware, or RLS.** Hiding a button is not access control. Every DAL function that returns user-owned data receives the viewer id and filters by ownership or participation, so a Server Action cannot accidentally widen access. A real-database test suite pins down the rules: only an owner can edit an item, only participants can read a conversation, and only a completed pickup can be rated.
 2. **A pickup is an explicit state transition, not a flag on the item.** `pickups` owns proposed / confirmed / completed / cancelled, with the shared time and spot; the item moves active → pending → given in the same transaction as the pickup change. Completing a pickup is the only moment that unlocks rating, so the state change and the rating rules stay in one place. The trade-off is one more table and a careful write path.
 3. **Location stays in PostGIS; distance is rounded before it reaches the client.** `ST_DWithin` + a GiST index keep radius queries fast, and the DAL never selects the raw `items.location` for browsing — it returns a distance rounded to 0.1 km. Exact addresses are never shown; handovers happen at shared public spots. The trade-off is reduced precision for a cleaner privacy story.
 4. **Server Components read, Server Actions write.** There is no client-side data-fetching layer and no REST API to keep in sync; the only API route is the better-auth handler. Form input is validated with hand-written Zod schemas at the Server Action boundary (`src/lib/validation.ts`) because form strings and date/time inputs do not map 1:1 to Drizzle column types. The trade-off is limited optimistic UI.
@@ -54,7 +54,7 @@ docs/images/     architecture diagram and screenshots
 
 | Table | Purpose |
 |---|---|
-| `profiles` | Display name, student / phone verification flags, rating aggregates |
+| `profiles` | Display name, student / phone verification flags (placeholders), rating aggregates |
 | `items` | Listing, category, condition, pickup spot, `geometry(Point, 4326)` location |
 | `item_photos` | Ordered photos per item |
 | `conversations` | One thread per item × receiver |
@@ -67,8 +67,8 @@ Auth tables (`user`, `session`, `account`, `verification`) are managed by better
 ## Features
 
 - Browse items near a pickup spot (1 / 2 / 5 km) and message the giver — guests can join without email.
-- One conversation per item; propose, confirm, complete or cancel a pickup at a public spot, then rate each other.
-- Photos in Supabase Storage; student email OTP for verified profiles, generated avatars otherwise.
+- One conversation per item × receiver; propose, confirm, complete or cancel a pickup at a public spot, then rate each other.
+- Photos in Supabase Storage; email OTP sign-in (student email in the UI) and anonymous guest sessions, with avatars generated from initials.
 - Keyboard-first UI with visible focus and labelled controls.
 
 ## Tech stack
